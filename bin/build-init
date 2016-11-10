@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# TODO: remove when done debugging
+set -x
+
+echo "Configuring ssh access..."
+(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
+sed -i "s/DOCKER_HOST_IP/$DOCKER_HOST_IP/g" $HOME/.ssh/config
+
+echo "Setting up remote build environment..."
+ssh docker-host whoami
+# Cleanup
+ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f) || true"
+ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR; mkdir -p $REMOTE_BUILD_DIR"
+# Checkout sources
+ssh docker-host "cd $REMOTE_BUILD_DIR && git clone git@bitbucket.org:$BITBUCKET_REPO_OWNER/$BITBUCKET_REPO_SLUG.git . && git reset --hard $BITBUCKET_COMMIT && ls -la"
+echo "Configuring sandbox settings..."
+ssh docker-host "cd $REMOTE_BUILD_DIR && echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME | tee -a .docksal/docksal-local.env"
+ssh docker-host "cd $REMOTE_BUILD_DIR && echo VIRTUAL_HOST=$DOMAIN | tee -a .docksal/docksal-local.env"
+#echo "Launching fin init..."
+#ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"

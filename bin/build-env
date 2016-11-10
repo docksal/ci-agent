@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Configuring environment variables
+export BRANCH_NAME_SAFE="$(echo $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
+export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
+export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
+export DOCKSAL_HOST="$DOCKER_HOST_IP.xip.io"
+export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG.$DOCKSAL_HOST"
