@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+MESSAGE="${1}"
+SLACK_CHANNEL="${SLACK_CHANNEL:-$2}"
+SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL:-$3}"
+
+if [[ "$MESSAGE" == "" ]] || [[ "$SLACK_CHANNEL" == "" ]] || [[ "$SLACK_WEBHOOK_URL" == "" ]]; then
+	echo "Usage: slack 'message' ['#channel'] ['webhook_url']"
+	echo
+	echo "Channel can be set via SLACK_CHANNEL environment variable."
+	echo "Webhook URL can be set via SLACK_WEBHOOK_URL environment variable."
+	exit 1
+fi
+
+curl -X POST --data-urlencode "payload={'channel': '${SLACK_CHANNEL}', 'username': 'Bitbucket Pipelines', 'text': '${MESSAGE}', 'icon_emoji': ':bitbucket:'}" "${SLACK_WEBHOOK_URL}"

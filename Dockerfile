@@ -15,5 +15,6 @@ RUN \
 COPY config/.ssh/config /root/.ssh/config
 COPY bin/build-env /usr/local/bin/build-env
 COPY bin/build-init /usr/local/bin/build-init
+COPY bin/slack /usr/local/bin/slack
 
 WORKDIR /root/build
