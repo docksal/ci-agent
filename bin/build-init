@@ -5,6 +5,7 @@ set -x
 
 echo "Configuring ssh access..."
 (umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
+(umask  077 ; echo "$DOCKER_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docker_host_id_rsa)
 sed -i "s/DOCKER_HOST_IP/$DOCKER_HOST_IP/g" $HOME/.ssh/config
 
 echo "Setting up remote build environment..."
