@@ -6,7 +6,12 @@ set -x
 echo "Configuring ssh access..."
 (umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
 (umask  077 ; echo "$DOCKER_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docker_host_id_rsa)
-sed -i "s/DOCKER_HOST_IP/$DOCKER_HOST_IP/g" $HOME/.ssh/config
+# Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP)
+if [[ $DOCKER_HOST != "" ]]; then
+    sed -i "s/DOCKER_HOST/$DOCKER_HOST/g" $HOME/.ssh/config
+else
+    sed -i "s/DOCKER_HOST/$DOCKER_HOST_IP/g" $HOME/.ssh/config
+fi
 
 echo "Setting up remote build environment..."
 ssh docker-host whoami
