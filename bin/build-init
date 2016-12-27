@@ -13,6 +13,10 @@ else
     sed -i "s/DOCKER_HOST/$DOCKER_HOST_IP/g" $HOME/.ssh/config
 fi
 
+# Configure git
+git config --global user.email "${CI_GIT_USER_EMAIL:-bitbucket-pipelines-agent@docksal.io}"
+git config --global user.name "${CI_GIT_USER_NAME:-Bitbucket Pipelines Agent}"
+
 echo "Setting up remote build environment..."
 ssh docker-host whoami
 # Cleanup
