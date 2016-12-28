@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# TODO: remove when done debugging
-set -x
-
 echo "Configuring ssh access..."
 (umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
 (umask  077 ; echo "$DOCKER_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docker_host_id_rsa)
@@ -24,8 +21,14 @@ ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f) || true"
 ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR; mkdir -p $REMOTE_BUILD_DIR"
 # Checkout sources
 ssh docker-host "cd $REMOTE_BUILD_DIR && git clone git@bitbucket.org:$BITBUCKET_REPO_OWNER/$BITBUCKET_REPO_SLUG.git . && git reset --hard $BITBUCKET_COMMIT && ls -la"
+# Configure sandbox settings
 echo "Configuring sandbox settings..."
 ssh docker-host "cd $REMOTE_BUILD_DIR && echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME | tee -a .docksal/docksal-local.env"
 ssh docker-host "cd $REMOTE_BUILD_DIR && echo VIRTUAL_HOST=$DOMAIN | tee -a .docksal/docksal-local.env"
+# Basic HTTP Auth
+if [[ $HTTP_USER != "" ]] && [[ $HTTP_PASS != "" ]]; then
+    ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_USER=$HTTP_USER | tee -a .docksal/docksal-local.env"
+    ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_PASS=$HTTP_PASS | tee -a .docksal/docksal-local.env"
+fi
 #echo "Launching fin init..."
 #ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
