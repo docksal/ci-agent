@@ -5,7 +5,8 @@
 # Configuring environment variables
 export BRANCH_NAME_SAFE="$(echo $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
 export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
-export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
+PROJECT_NAME="$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
+export COMPOSE_PROJECT_NAME="${PROJECT_NAME:0:50}-${BITBUCKET_COMMIT:0:12}"
 # Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP) with xip.io
 if [[ $DOCKER_HOST != "" ]]; then
 	export DOCKSAL_HOST="$DOCKER_HOST"
