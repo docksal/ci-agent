@@ -2,22 +2,29 @@
 
 # This script configures the pipelines build agent.
 
-# Configuring environment variables
-export BRANCH_NAME_SAFE="$(echo $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
-export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
-PROJECT_NAME="$BITBUCKET_REPO_SLUG-$BRANCH_NAME_SAFE"
-export COMPOSE_PROJECT_NAME="${PROJECT_NAME:0:50}-${BITBUCKET_COMMIT:0:12}"
+echo "Configuring build settings..."
+# Create a safe, trimmed and unique branch name.
+BRANCH_NAME_SAFE="$(echo -n $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
+export BRANCH_NAME_SAFE="$(echo -n $BRANCH_NAME_SAFE | cut -c1-30)-$(echo -n $BRANCH_NAME_SAFE | md5sum | cut -c1-4)"
+export $BITBUCKET_REPO_SLUG_SAFE="${BITBUCKET_REPO_SLUG:0:30}"
+
+export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
+export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
+
 # Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP) with xip.io
 if [[ $DOCKER_HOST != "" ]]; then
 	export DOCKSAL_HOST="$DOCKER_HOST"
 else
 	export DOCKSAL_HOST="$DOCKER_HOST_IP.xip.io"
 fi
-export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG.$DOCKSAL_HOST"
+
+# NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
+export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG_SAFE.$DOCKSAL_HOST"
 
 echo "Configuring ssh access..."
 (umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
 (umask  077 ; echo "$DOCKER_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docker_host_id_rsa)
+
 # Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP)
 if [[ $DOCKER_HOST != "" ]]; then
     sed -i "s/DOCKER_HOST/$DOCKER_HOST/g" $HOME/.ssh/config
