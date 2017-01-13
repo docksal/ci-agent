@@ -2,18 +2,19 @@
 
 # This script configures the pipelines build agent.
 
-BRANCH_NAME_LIMIT=35
+BRANCH_NAME_LENGTH_LIMIT=35
 
 echo "Configuring build settings..."
 # URL safe branch name
 BRANCH_NAME_SAFE="$(echo -n $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
-# Trim the branch name if longer than 35 characters and append the md5sum to keep the branch name unique
-if [[ "$(echo -n $BRANCH_NAME_SAFE | wc -c)" > "$BRANCH_NAME_LIMIT" ]]; then
+# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
+if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
     BRANCH_NAME_SAFE="$(echo -n $BRANCH_NAME_SAFE | cut -c1-30)-$(echo -n $BRANCH_NAME_SAFE | md5sum | cut -c1-4)"
 fi
-export BRANCH_NAME_SAFE
 
+# Trim repo slug to 30 characters. If someone has a repo name longer than that, then no mercy for them.
 export BITBUCKET_REPO_SLUG_SAFE="${BITBUCKET_REPO_SLUG:0:30}"
+export BRANCH_NAME_SAFE
 export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
 export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
 
