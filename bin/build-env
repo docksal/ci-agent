@@ -19,11 +19,7 @@ export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_N
 export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
 
 # Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP) with xip.io
-if [[ $DOCKER_HOST != "" ]]; then
-	export DOCKSAL_HOST="$DOCKER_HOST"
-else
-	export DOCKSAL_HOST="$DOCKER_HOST_IP.xip.io"
-fi
+DOCKSAL_HOST="${DOCKER_HOST:-$DOCKER_HOST_IP.xip.io}"
 
 # NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
 export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG_SAFE.$DOCKSAL_HOST"
