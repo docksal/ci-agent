@@ -15,8 +15,8 @@ ssh docker-host "cd $REMOTE_BUILD_DIR && echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJ
 ssh docker-host "cd $REMOTE_BUILD_DIR && echo VIRTUAL_HOST=$DOMAIN | tee -a .docksal/docksal-local.env"
 # Basic HTTP Auth
 if [[ $HTTP_USER != "" ]] && [[ $HTTP_PASS != "" ]]; then
-    ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_USER=$HTTP_USER | tee -a .docksal/docksal-local.env"
-    ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_PASS=$HTTP_PASS | tee -a .docksal/docksal-local.env"
+	ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_USER=$HTTP_USER | tee -a .docksal/docksal-local.env"
+	ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_PASS=$HTTP_PASS | tee -a .docksal/docksal-local.env"
 fi
 #echo "Launching fin init..."
 #ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"

@@ -9,7 +9,7 @@ echo "Configuring build settings..."
 BRANCH_NAME_SAFE="$(echo -n $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
 # Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
 if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
-    BRANCH_NAME_SAFE="$(echo -n $BRANCH_NAME_SAFE | cut -c1-30)-$(echo -n $BRANCH_NAME_SAFE | md5sum | cut -c1-4)"
+	BRANCH_NAME_SAFE="$(echo -n $BRANCH_NAME_SAFE | cut -c1-30)-$(echo -n $BRANCH_NAME_SAFE | md5sum | cut -c1-4)"
 fi
 
 # Trim repo slug to 30 characters. If someone has a repo name longer than that, then no mercy for them.
@@ -30,9 +30,9 @@ echo "Configuring ssh access..."
 
 # Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP)
 if [[ $DOCKER_HOST != "" ]]; then
-    sed -i "s/DOCKER_HOST/$DOCKER_HOST/g" $HOME/.ssh/config
+	sed -i "s/DOCKER_HOST/$DOCKER_HOST/g" $HOME/.ssh/config
 else
-    sed -i "s/DOCKER_HOST/$DOCKER_HOST_IP/g" $HOME/.ssh/config
+	sed -i "s/DOCKER_HOST/$DOCKER_HOST_IP/g" $HOME/.ssh/config
 fi
 
 # Configure git
