@@ -8,7 +8,7 @@ ssh docker-host whoami
 ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f) || true"
 ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR; mkdir -p $REMOTE_BUILD_DIR"
 # Checkout sources
-ssh docker-host "cd $REMOTE_BUILD_DIR && git clone git@bitbucket.org:$BITBUCKET_REPO_OWNER/$BITBUCKET_REPO_SLUG.git . && git reset --hard $BITBUCKET_COMMIT && ls -la"
+ssh docker-host "cd $REMOTE_BUILD_DIR && git clone --branch="$BITBUCKET_BRANCH" --depth 50 git@bitbucket.org:$BITBUCKET_REPO_OWNER/$BITBUCKET_REPO_SLUG.git . && git reset --hard $BITBUCKET_COMMIT && ls -la"
 # Configure sandbox settings
 echo "Configuring sandbox settings..."
 ssh docker-host "cd $REMOTE_BUILD_DIR && echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME | tee -a .docksal/docksal-local.env"
