@@ -1,5 +1,6 @@
 FROM docksal/bitbucket-pipelines-agent:edge
 
+# Switch to root to install some system-wide stuff
 USER root
 
 RUN apk add --update --no-cache \
@@ -31,6 +32,7 @@ RUN \
     # Make all binaries executable
     chmod +x /usr/local/bin/*
 
+# Switch back to user
 ARG AGENT_USER=agent
 USER $AGENT_USER
 
@@ -46,3 +48,7 @@ RUN \
     phpcs --config-set installed_paths $HOME/.composer/vendor/drupal/coder/coder_sniffer && \
     # Cleanup
     composer clear-cache
+
+COPY config/.drush $HOME/.drush
+# Fix permissions after COPY
+RUN sudo chown -R $AGENT_USER:$AGENT_USER $HOME
