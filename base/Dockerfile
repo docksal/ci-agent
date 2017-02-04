@@ -2,10 +2,11 @@ FROM alpine:3.5
 
 RUN apk add --update --no-cache \
     bash \
-    sudo \
     curl \
-    openssh \
     git \
+    jq \
+    openssh \
+    sudo \
     && rm -rf /var/cache/apk/*
 
 ARG AGENT_USER=agent
