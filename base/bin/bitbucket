@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+MESSAGE="${1}"
+PROJECT="${PROJECT:-$2}"
+REPO="${REPO:-$3}"
+BITBUCKET_USER_LOGIN="${USER_LOGIN:-$3}"
+BITBUCKET_USER_PASSWORD="${USER_PASSWORD:-$4}"
+PULL_REQUEST="${PULL_REQUEST:-$4}"
+if [[ "$PULL_REQUEST" == "" ]]; then
+	PULL_REQUEST=$(git log --format=%B -n 1 $BITBUCKET_COMMIT | grep -oP "pull request \#(\d+)" | grep -oP "\d+" || echo "")
+fi
+
+if [[ "$MESSAGE" == "" ]] || [[ "$PROJECT" == "" ]] || [[ "$REPO" == "" ]] || [[ "$PULL_REQUEST" == "" ]]; then
+	echo "Usage: bitbucket 'message' ['project'] ['repo'] ['user-login'] ['user-password'] ['pull_request']"
+	exit 1
+fi
+
+curl -D- -u $BITBUCKET_USER_LOGIN:$BITBUCKET_USER_PASSWORD -X POST --data "{\"content\":\"$MESSAGE\"}" -H "Content-Type:application/json" https://api.bitbucket.org/1.0/repositories/$PROJECT/$REPO/pullrequests/$PULL_REQUEST/comments

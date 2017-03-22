@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+MESSAGE="${1}"
+JIRA="${JIRA:-$2}"
+USER_LOGIN="${USER_LOGIN:-$3}"
+USER_PASSWORD="${USER_PASSWORD:-$4}"
+TICKET="${TICKET:-$5}"
+if [[ "$TICKET" == "" ]]; then
+	TICKET=$(git log --format=%B -n 1 $BITBUCKET_COMMIT | grep -oP "((([A-Z]{1,10})-?)[A-Z]+-\d+)" | head -1  || echo "")
+fi
+
+if [[ "$MESSAGE" == "" ]] || [[ "$JIRA" == "" ]] || [[ "$TICKET" == "" ]] || [[ "$USER_LOGIN" == "" ]] || [[ "$USER_PASSWORD" == "" ]]; then
+	echo "Usage: jira 'message' ['jira-domain'] ['user-login'] ['user-password'] ['ticket']"
+	exit 1
+fi
+
+curl -D- -u $USER_LOGIN:$USER_PASSWORD -X POST --data "{\"body\":\"$COMMENT\"}" -H "Content-Type:application/json" https://$JIRA/rest/api/2/issue/$TICKET/comment

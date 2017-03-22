@@ -28,6 +28,8 @@ COPY config/.ssh/config $AGENT_HOME/.ssh/config
 COPY bin/build-env /usr/local/bin/build-env
 COPY bin/build-init /usr/local/bin/build-init
 COPY bin/slack /usr/local/bin/slack
+COPY bin/jira /usr/local/bin/jira
+COPY bin/bitbucket /usr/local/bin/bitbucket
 # Fix permissions after COPY
 RUN sudo chown -R $AGENT_USER:$AGENT_USER $AGENT_HOME
 
