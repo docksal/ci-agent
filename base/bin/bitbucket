@@ -7,7 +7,7 @@ BITBUCKET_USER_LOGIN="${BITBUCKET_USER_LOGIN:-$3}"
 BITBUCKET_USER_PASSWORD="${BITBUCKET_USER_PASSWORD:-$4}"
 PULL_REQUEST="${PULL_REQUEST:-$4}"
 if [[ "$PULL_REQUEST" == "" ]]; then
-	PULL_REQUEST=$(git log --format=%B -n 1 $BITBUCKET_COMMIT | grep -oE "pull request \#(\d+)" | grep -oP "\d+" || echo "")
+	PULL_REQUEST=$(git log --format=%B -n 1 $BITBUCKET_COMMIT | grep -oE "pull request \#(\d+)" | grep -oE "\d+" || echo "")
 fi
 
 if [[ "$MESSAGE" == "" ]] || [[ "$PROJECT" == "" ]] || [[ "$REPO" == "" ]] || [[ "$PULL_REQUEST" == "" ]]; then
