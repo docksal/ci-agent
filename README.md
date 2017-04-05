@@ -18,6 +18,14 @@ URLs to sandbox environments can be found in the build logs and can also publish
 
 Channel and webhook url can be passed via environment variables. See below.
 
+## Post message in Jira ticket
+
+## Usage
+`jira 'message' ['jira-domain'] ['user-login'] ['user-password'] ['ticket']`
+
+Jira-domain, user-login, user-password and ticket (optional) can be passed via environment variables. See below.
+Also ticket can be parsed from commit message (for example: "DSF-32 Post sandbox URL in Jira ticket" => TICKET="DSF-32").
+
 ## Configuration
 
 ### Global Pipelines variables
@@ -52,6 +60,23 @@ The Incoming Webhook integration URL from Slack, e.g. `SLACK_WEBHOOK_URL https:/
 `SLACK_CHANNEL`
 
 A public or private channel in Slack, e.g. `SLACK_CHANNEL #project-name-bots`
+
+`JIRA`
+
+This is a jira domain. For example: myjira.atlassian.net
+
+`USER_LOGIN` and `USER_PASSWORD`
+
+User which will be using for posting comment.
+
+`TICKET` (optional)
+
+Jira ticket number. For example: DSF-32
+If this variable is set, message will be posted in this ticket.<br> 
+If variable isn't set, ticket will be parsed from commit message (for example: "DSF-32 Post sandbox URL in Jira ticket" => TICKET="DSF-32").<br>
+If commit message contains more than one matches, first occurrence will be used.
+
+
 
 ### Limitations
 

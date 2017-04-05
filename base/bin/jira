@@ -11,6 +11,9 @@ fi
 
 if [[ "$MESSAGE" == "" ]] || [[ "$JIRA" == "" ]] || [[ "$TICKET" == "" ]] || [[ "$USER_LOGIN" == "" ]] || [[ "$USER_PASSWORD" == "" ]]; then
 	echo "Usage: jira 'message' ['jira-domain'] ['user-login'] ['user-password'] ['ticket']"
+	echo
+	echo "Jira-domain, user-login, user-password and ticket (optional) can be passed via environment variables."
+	echo "Also ticket can be parsed from commit message."
 	exit 1
 fi
 
