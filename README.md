@@ -12,6 +12,20 @@ into the project repo will enable per-branch sandbox provisioning.
 URLs to sandbox environments can be found in the build logs and can also published to a desired Slack channel.
 
 
+## Image variants and versions
+
+### Stable
+
+- `docksal/bitbucket-pipelines-agent` - basic (bash, curl, git)
+- `docksal/bitbucket-pipelines-agent:php` - basic + php stack tools (composer, drush, drupal console, wp-cli, etc)
+- `docksal/bitbucket-pipelines-agent:1.0` - basic, specific version
+- `docksal/bitbucket-pipelines-agent:1.0-php` - php, specific version
+
+### Development
+
+- `docksal/bitbucket-pipelines-agent:edge`
+- `docksal/bitbucket-pipelines-agent:edge-php`
+
 ## Configuration
 
 ### Global Pipelines variables
