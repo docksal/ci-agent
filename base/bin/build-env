@@ -18,21 +18,21 @@ export BRANCH_NAME_SAFE
 export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
 export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
 
-# Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP) with xip.io
-DOCKSAL_HOST="${DOCKER_HOST:-$DOCKER_HOST_IP.xip.io}"
+# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with xip.io
+DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.xip.io}"
 
 # NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
 export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG_SAFE.$DOCKSAL_HOST"
 
 echo "Configuring ssh access..."
 (umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
-(umask  077 ; echo "$DOCKER_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docker_host_id_rsa)
+(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
 
-# Use DOCKER_HOST (domain name) if set, otherwise use DOCKER_HOST_IP (IP)
-if [[ $DOCKER_HOST != "" ]]; then
-	sed -i "s/DOCKER_HOST/$DOCKER_HOST/g" $HOME/.ssh/config
+# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP)
+if [[ $DOCKSAL_HOST != "" ]]; then
+	sed -i "s/DOCKSAL_HOST/$DOCKSAL_HOST/g" $HOME/.ssh/config
 else
-	sed -i "s/DOCKER_HOST/$DOCKER_HOST_IP/g" $HOME/.ssh/config
+	sed -i "s/DOCKSAL_HOST/$DOCKSAL_HOST_IP/g" $HOME/.ssh/config
 fi
 
 # Configure git
