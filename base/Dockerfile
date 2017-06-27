@@ -47,11 +47,9 @@ RUN \
     mkdir -p $AGENT_HOME/.ssh && \
     mkdir -p $AGENT_HOME/build
 
+COPY bin /usr/local/bin
 COPY config/.ssh/config $AGENT_HOME/.ssh/config
-COPY bin/build-env /usr/local/bin/build-env
-COPY bin/build-init /usr/local/bin/build-init
-COPY bin/slack /usr/local/bin/slack
 # Fix permissions after COPY
-RUN sudo chown -R $AGENT_USER:$AGENT_USER $AGENT_HOME
+RUN sudo chown -R $AGENT_USER:$AGENT_USER $AGENT_HOME/.ssh/config
 
 WORKDIR $AGENT_HOME/build
