@@ -4,38 +4,64 @@
 
 BRANCH_NAME_LENGTH_LIMIT=35
 
-echo "Configuring build settings..."
-# URL safe branch name
-BRANCH_NAME_SAFE="$(echo -n $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
-# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
-if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
-	BRANCH_NAME_SAFE="$(echo -n $BRANCH_NAME_SAFE | cut -c1-30)-$(echo -n $BRANCH_NAME_SAFE | md5sum | cut -c1-4)"
+# Support for Bitbucket Pipelines
+if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
+	echo "Detected Bitbucket Pipelines build environment"
+	REPO_OWNER="$BITBUCKET_REPO_OWNER"
+	REPO_NAME="$BITBUCKET_REPO_SLUG"
+	BRANCH_NAME="$BITBUCKET_BRANCH"
+	COMMIT_HASH="$BITBUCKET_COMMIT"
 fi
 
-# Trim repo slug to 30 characters. If someone has a repo name longer than that, then no mercy for them.
-export BITBUCKET_REPO_SLUG_SAFE="${BITBUCKET_REPO_SLUG:0:30}"
+# Support for CircleCI 2.0
+if [[ "$CIRCLECI" != "" ]]; then
+	echo "Detected CircleCI build environment"
+	REPO_OWNER="$CIRCLE_PROJECT_USERNAME"
+	REPO_NAME="$CIRCLE_PROJECT_REPONAME"
+	BRANCH_NAME="$CIRCLE_BRANCH"
+	COMMIT_HASH="$CIRCLE_SHA1"
+fi
+
+# For debug purposes these variables can be set manually.
+# If they are empty here, then we cannot proceed.
+if [[ "$REPO_OWNER" == "" ]] || [[ "$REPO_NAME" == "" ]] || [[ "$BRANCH_NAME" == "" ]]; then
+	echo "Unsupported build environment! Quiting..."
+	exit 1
+fi
+
+echo "Configuring build settings..."
+# URL safe branch name
+BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME" | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
+# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
+if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
+	BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME_SAFE" | cut -c1-30)-$(echo -n "$BRANCH_NAME_SAFE" | md5sum | cut -c1-4)"
+fi
+
+# Trim repo name to 30 characters. If someone has a repo name longer than that, then no mercy for them.
+export REPO_NAME_SAFE="${REPO_NAME:0:30}"
 export BRANCH_NAME_SAFE
-export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
-export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
+export REMOTE_BUILD_DIR="/home/ubuntu/builds/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+export DOCKER_STACK_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
 
 # Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with xip.io
 DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.xip.io}"
 sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
 
-# User ubuntu as a user by default
+# Use ubuntu as the user by default
 DOCKSAL_HOST_USER="${DOCKSAL_HOST_USER:-ubuntu}"
 sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
 
 # NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
-export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG_SAFE.$DOCKSAL_HOST"
+export DOMAIN="$BRANCH_NAME_SAFE.$REPO_NAME_SAFE.$DOCKSAL_HOST"
 
 echo "Configuring ssh access..."
 (umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
 (umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
 
 # Configure git
-git config --global user.email "${CI_GIT_USER_EMAIL:-bitbucket-pipelines-agent@docksal.io}"
-git config --global user.name "${CI_GIT_USER_NAME:-Bitbucket Pipelines Agent}"
+git config --global user.email "${CI_GIT_USER_EMAIL:-ci@docksal.io}"
+git config --global user.name "${CI_GIT_USER_NAME:-Docksal CI}"
 
 # Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
