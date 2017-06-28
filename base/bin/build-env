@@ -6,6 +6,8 @@
 
 BRANCH_NAME_LENGTH_LIMIT=35
 DOCKER_HOST_TUNNEL=localhost:2374
+GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
+GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
 
 # -------------------- Functions -------------------- #
 
@@ -34,30 +36,32 @@ echo "Configuring build settings..."
 # Support for Bitbucket Pipelines
 if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
 	echo "Detected Bitbucket Pipelines build environment"
-	export REPO_OWNER="$BITBUCKET_REPO_OWNER"
-	export REPO_NAME="$BITBUCKET_REPO_SLUG"
-	export BRANCH_NAME="$BITBUCKET_BRANCH"
-	export COMMIT_HASH="$BITBUCKET_COMMIT"
+	export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
+	export GIT_REPO_NAME="$BITBUCKET_REPO_SLUG"
+	export GIT_REPO_URL="git@bitbucket.org:$GIT_REPO_OWNER/$GIT_REPO_NAME.git"
+	export GIT_BRANCH_NAME="$BITBUCKET_BRANCH"
+	export GIT_COMMIT_HASH="$BITBUCKET_COMMIT"
 fi
 
 # Support for CircleCI 2.0
 if [[ "$CIRCLECI" != "" ]]; then
 	echo "Detected CircleCI build environment"
-	export REPO_OWNER="$CIRCLE_PROJECT_USERNAME"
-	export REPO_NAME="$CIRCLE_PROJECT_REPONAME"
-	export BRANCH_NAME="$CIRCLE_BRANCH"
-	export COMMIT_HASH="$CIRCLE_SHA1"
+	export GIT_REPO_OWNER="$CIRCLE_PROJECT_USERNAME"
+	export GIT_REPO_NAME="$CIRCLE_PROJECT_REPONAME"
+	export GIT_REPO_URL="$CIRCLE_REPOSITORY_URL"
+	export GIT_BRANCH_NAME="$CIRCLE_BRANCH"
+	export GIT_COMMIT_HASH="$CIRCLE_SHA1"
 fi
 
 # For debug purposes these variables can be set manually.
 # If they are empty here, then we cannot proceed.
-if [[ "$REPO_OWNER" == "" ]] || [[ "$REPO_NAME" == "" ]] || [[ "$BRANCH_NAME" == "" ]]; then
+if [[ "$GIT_REPO_URL" == "" ]] || [[ "$GIT_BRANCH_NAME" == "" ]] || [[ "$GIT_COMMIT_HASH" == "" ]]; then
 	echo "Unsupported build environment! Quiting..."
 	exit 1
 fi
 
 # URL safe branch name
-BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME" | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
+BRANCH_NAME_SAFE="$(echo -n "$GIT_BRANCH_NAME" | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
 # Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
 if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
 	BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME_SAFE" | cut -c1-30)-$(echo -n "$BRANCH_NAME_SAFE" | md5sum | cut -c1-4)"
@@ -65,7 +69,7 @@ fi
 export BRANCH_NAME_SAFE
 
 # Trim repo name to 30 characters. If someone has a repo name longer than that, then no mercy for them.
-export REPO_NAME_SAFE="${REPO_NAME:0:30}"
+export REPO_NAME_SAFE="${GIT_REPO_NAME:0:30}"
 export REMOTE_BUILD_DIR="/home/ubuntu/builds/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
 export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
 export DOCKER_STACK_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
@@ -89,8 +93,8 @@ echo "Configuring ssh access..."
 (umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
 
 # Configure git
-git config --global user.email "${CI_GIT_USER_EMAIL:-ci@docksal.io}"
-git config --global user.name "${CI_GIT_USER_NAME:-Docksal CI}"
+git config --global user.email "$GIT_USER_EMAIL"
+git config --global user.name "$GIT_USER_NAME"
 
 # Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 # Export local tunnel connection settings if it works
