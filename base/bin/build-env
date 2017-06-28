@@ -1,9 +1,33 @@
 #!/usr/bin/env bash
 
-# This script configures the pipelines build agent.
+# Configures build environment variables
 
-# Constants
+# -------------------- Constants -------------------- #
+
 BRANCH_NAME_LENGTH_LIMIT=35
+DOCKER_HOST_TUNNEL=localhost:2374
+
+# -------------------- Functions -------------------- #
+
+ssh_tunnel_init ()
+{
+	# Check if the tunnel is already active and return if so
+	ssh -O "check" docker-host >/dev/null 2>&1
+	[[ $? == 0 ]] && return 0
+
+	echo "Setting up a secure tunnel to the Docker Engine on $DOCKSAL_HOST..."
+	# Black magic! Remote docker.sock access over SSH tunnel
+	# Credits:
+	# https://docs.docker.com/docker-for-aws/deploy/#connecting-via-ssh
+	# https://gist.github.com/scy/6781836#gistcomment-1559506
+	ssh -fM -NL ${DOCKER_HOST_TUNNEL}:/var/run/docker.sock docker-host
+
+	echo "Querying Docker Engine..."
+	docker --host ${DOCKER_HOST_TUNNEL} version
+	return $?
+}
+
+# -------------------- Runtime -------------------- #
 
 echo "Configuring build settings..."
 
@@ -69,16 +93,5 @@ git config --global user.email "${CI_GIT_USER_EMAIL:-ci@docksal.io}"
 git config --global user.name "${CI_GIT_USER_NAME:-Docksal CI}"
 
 # Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
-if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
-	echo "Setting up a secure tunnel to the Docker Engine on $DOCKSAL_HOST..."
-	# Black magic! Remote docker.sock access over SSH tunnel
-	# Credits:
-	# https://docs.docker.com/docker-for-aws/deploy/#connecting-via-ssh
-	# https://gist.github.com/scy/6781836#gistcomment-1559506
-	ssh -fM -NL localhost:2374:/var/run/docker.sock docker-host
-
-	echo "Querying Docker Engine..."
-	docker --host localhost:2374 version
-	# Export local tunnel connection settings if it works
-	[[ $? == 0 ]] && export DOCKER_HOST="localhost:2374"
-fi
+# Export local tunnel connection settings if it works
+[[ "$DOCKSAL_HOST_TUNNEL" != "" ]] && ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
