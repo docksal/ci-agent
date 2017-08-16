@@ -26,11 +26,11 @@ URLs to sandbox environments can be found in the build logs and can also publish
 - `docksal/bitbucket-pipelines-agent:edge`
 - `docksal/bitbucket-pipelines-agent:edge-php`
 
+
 ## Configuration
 
-### Global Pipelines variables
-
-The agent expects the following required variables to be defined.
+The following required variables should be configured at the Bitbucket organization level (this way all
+project repos will have access to them). 
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
@@ -46,13 +46,31 @@ tutorial for details.
 
 `CI_SSH_KEY`
 
-A second SSH keys (base64 encoded as well), which can be used for deployments and other remote operations run directly 
+A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly 
 on the agent.  
 E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
 
-### Project level Pipelines variables 
+Other features and integrations are usually configured at the Bitbucket repo level. See below.
 
-The following environment variables can be configured in the project's Pipelines settings:
+
+## Basic HTTP Auth
+
+Protect sandboxes from public access using Basic HTTP authentication.
+
+### Configuration
+
+Set the following environment variables at the repo level:
+
+- `HTTP_USER`
+- `HTTP_PASS`
+
+
+## Slack integration
+
+This integrations allows the agent to post messages to a given Slack channel.  
+It can be used for notification purposes when a build is started, completed, failed, etc.
+
+### Configuration
 
 `SLACK_WEBHOOK_URL`
 
@@ -63,13 +81,11 @@ e.g. `SLACK_WEBHOOK_URL https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXx
 
 A public or private channel in Slack, e.g. `SLACK_CHANNEL #project-name-bots`
 
-## Slack notifications
-
 ### Usage
 
 `slack 'message' ['#channel'] ['webhook_url']`
 
-Channel and webhook url can be passed via environment variables. See below.
+Channel and webhook url can be passed via environment variables. See above. 
 
 ### Limitations
 
