@@ -1,4 +1,4 @@
-FROM alpine:3.5
+FROM alpine:3.6
 
 RUN apk add --update --no-cache \
     bash \
@@ -19,18 +19,15 @@ RUN \
     ln -s /lib/libz.so.1 /usr/glibc-compat/lib/ && \
     ln -s /lib/libc.musl-x86_64.so.1 /usr/glibc-compat/lib
 
-ARG DOCKER_VERSION=17.05.0-ce
-ARG DOCKER_COMPOSE_VERSION=1.13.0
+ARG DOCKER_VERSION=17.06.0-ce
+ARG DOCKER_COMPOSE_VERSION=1.14.0
 RUN \
     # Install docker cli
-    curl -L -O https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz && \
-    tar -xzf docker-${DOCKER_VERSION}.tgz && \
-    mv docker/docker /usr/local/bin && \
-    rm -rf docker docker-${DOCKER_VERSION}.tgz && \
+    curl -sSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz" && \
+    tar zxf docker-$DOCKER_VERSION.tgz && mv docker/docker /usr/local/bin && rm -rf docker-$DOCKER_VERSION* && \
     # Install docker-compose cli
-    curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && \
-    # Make binaries executable
-    chmod -R +x /usr/local/bin
+    curl -sSL https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && \
+    chmod +x /usr/local/bin/docker-compose
 
 ARG AGENT_USER=agent
 ARG AGENT_HOME=/home/agent

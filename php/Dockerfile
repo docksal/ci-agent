@@ -16,10 +16,10 @@ RUN apk add --update --no-cache \
     && rm -rf /var/cache/apk/* \
     && ln -s /usr/bin/php7 /usr/bin/php
 
-ENV COMPOSER_VERSION 1.3.0
-ENV DRUSH_VERSION 8.1.9
-ENV DRUPAL_CONSOLE_VERSION 1.0.0-rc15
-ENV WPCLI_VERSION 1.1.0
+ENV COMPOSER_VERSION=1.5.1
+ENV DRUSH_VERSION 8.1.13
+ENV DRUPAL_CONSOLE_VERSION 1.0.1
+ENV WPCLI_VERSION 1.3.0
 RUN \
     # Composer
     curl -sSL "https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer && \
