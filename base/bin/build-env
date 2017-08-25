@@ -93,9 +93,12 @@ echo "Configuring ssh access..."
 (umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
 
 # Configure git
+echo "Configuring git..."
 git config --global user.email "$GIT_USER_EMAIL"
 git config --global user.name "$GIT_USER_NAME"
 
 # Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 # Export local tunnel connection settings if it works
-[[ "$DOCKSAL_HOST_TUNNEL" != "" ]] && ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
+if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
+	ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
+fi
