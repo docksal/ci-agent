@@ -27,7 +27,10 @@ RUN \
     tar zxf docker-$DOCKER_VERSION.tgz && mv docker/docker /usr/local/bin && rm -rf docker-$DOCKER_VERSION* && \
     # Install docker-compose cli
     curl -sSL https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && \
-    chmod +x /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose && \
+    # Install minio client (mc)
+    curl -sSL https://dl.minio.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc && \
+    chmod +x /usr/local/bin/mc
 
 ARG AGENT_USER=agent
 ARG AGENT_HOME=/home/agent

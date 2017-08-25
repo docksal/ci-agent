@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Publishes build artifacts
+#
+# Usage: build-artifact-publish <source>
+
+# Initialize minio client (mc) configuration for S3
+mc config host add s3 https://s3.amazonaws.com ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY}
+
+BUCKET="s3/${AWS_S3_BUCKET}"
+
+source=${1}
+target="${BUCKET}/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/${GIT_BRANCH_NAME}-${GIT_COMMIT_HASH}"
+
+mc cp -r ${source} ${target}

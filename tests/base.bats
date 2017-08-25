@@ -29,6 +29,10 @@ teardown() {
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "docker-compose version"
 
+	run make exec COMMAND="mc --help"
+	[[ "$status" == 0 ]]
+	echo "$output" | grep "VERSION"
+
 	### Cleanup ###
 	make clean
 }
