@@ -29,6 +29,29 @@ ssh_tunnel_init ()
 	return $?
 }
 
+# Set environment variables for artifact storage functionality
+artifact_storage_env ()
+{
+	# Single bucket mode (all repos are stored in a single bucket)
+	# If AWS_S3_BUCKET is set, derive BUCKET_PATH from repo name, branch and commit hash
+	if [[ "${AWS_S3_BUCKET}" != "" ]]; then
+		export ARTIFACTS_BUCKET_NAME="${AWS_S3_BUCKET}"
+		export ARTIFACTS_BUCKET_PATH="${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"
+	# Multi-bucket module (each repo gets its own bucket)
+	# Otherwise use repo owner and repo name for BUCKET_NAME, git branch and commit hash for BUCKET_PATH
+	else
+		# Using hyphen as a delimiter in the bucket name
+		# With the dot delimiter in BUCKET_NAME Amazon's wildcard cert (*.s3.amazonaws.com) does not work.
+		# E.g. https://my.bucket.name.s3.amazonaws.com/ throws an invalid cert warning.
+		# URLs like https://s3.amazonaws.com/$BUCKET_NAME works in either case (with hyphens or dots in BUCKET_NAME)
+		export ARTIFACTS_BUCKET_NAME="${REPO_NAME_SAFE}-${GIT_REPO_OWNER}"
+		export ARTIFACTS_BUCKET_PATH="${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"
+	fi
+
+	# Expecting index.html as the default entry point into the bucket/path
+	export ARTIFACTS_URL="https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com/${ARTIFACTS_BUCKET_PATH}/index.html"
+}
+
 # -------------------- Runtime -------------------- #
 
 echo "Configuring build settings..."
@@ -99,6 +122,11 @@ git config --global user.name "$GIT_USER_NAME"
 
 # Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 # Export local tunnel connection settings if it works
+# Using full if form instead of the short one here, otherwise builds will fail, when the condition below is false
 if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
 	ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
 fi
+
+# Artifact storage
+echo "Configuring artifact storage settings..."
+artifact_storage_env

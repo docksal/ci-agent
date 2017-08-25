@@ -9,27 +9,34 @@
 set -e
 
 # Initialize minio client (mc) configuration for S3
+# AWS API keys must be set in the build settings
 mc config host add s3 https://s3.amazonaws.com ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY}
 
-# If AWS_S3_BUCKET is set, derive BUCKET_PATH from repo name, branch and commit hash
-if [[ "${AWS_S3_BUCKET}" != "" ]]; then
-	BUCKET_NAME="${AWS_S3_BUCKET}"
-	BUCKET_PATH="${GIT_REPO_NAME}/${GIT_BRANCH_NAME}-${GIT_COMMIT_HASH}"
-# Otherwise use repo owner and repo name for BUCKET_NAME, git branch and commit hash for BUCKET_PATH
-else
-	BUCKET_NAME="${GIT_REPO_OWNER}-${GIT_REPO_NAME}"
-	BUCKET_PATH="${GIT_BRANCH_NAME}-${GIT_COMMIT_HASH}"
-fi
-
-URL="https://${BUCKET_NAME}.s3.amazonaws.com/${BUCKET_PATH}"
-
 source=${1}
-target="s3/${BUCKET_NAME}/${BUCKET_PATH}"
+destination="s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
 
 # Create bucket if it does not exist
-mc mb "s3/${BUCKET_NAME}"
+mc mb "s3/${ARTIFACTS_BUCKET_NAME}"
+# Upload artifact into the bucket and get the list of files at the destination
+mc cp -r ${source} ${destination}
+# Set read-only permissions on BUCKET_PATH
+# Access is possible only if BUCKET_PATH is known (parent bucket stays private => XML listing of bucket objects disabled)
+mc policy download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
 
-# Upload artifact into the bucket
-mc cp -r ${source} ${target} &&
-	echo "Build artifacts upload completed:" &&
-	echo "${URL}"
+echo "Build artifacts upload completed:"
+echo "${ARTIFACTS_URL}"
+echo "Files:"
+mc ls ${destination}
+
+# Post artifacts to Bitbucket build status API
+if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
+	echo "Posting artifacts URL to Bitbucket..."
+
+	BUILD_STATUS_URL="${ARTIFACTS_URL}"
+	BUILD_STATUS_PAYLOAD="{\"key\": \"artifacts\", \"state\": \"SUCCESSFUL\", \"name\": \"Build artifacts\", \"url\": \"${BUILD_STATUS_URL}\"}"
+
+	BITBUCKET_API_URL="https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/commit/${BITBUCKET_COMMIT}/statuses/build"
+	curl -sS -H "Content-Type: application/json" -X POST --user "${BITBUCKET_API_AUTH}" -d "${BUILD_STATUS_PAYLOAD}" "${BITBUCKET_API_URL}" >/dev/null
+else
+	echo "This command only works in Bitbucket Pipelines"
+fi
