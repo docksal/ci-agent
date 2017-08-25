@@ -13,6 +13,7 @@ RUN apk add --update --no-cache \
     php7-openssl \
     php7-phar \
     php7-xml \
+    php7-zlib \
     && rm -rf /var/cache/apk/* \
     && ln -s /usr/bin/php7 /usr/bin/php
 
