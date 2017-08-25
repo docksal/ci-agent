@@ -1,0 +1,20 @@
+language: generic
+
+services:
+  - docker
+
+env:
+  matrix:
+    - VERSION=base
+    - VERSION=php
+
+install:
+  - curl -fsSL get.docksal.io | sh
+  - fin version
+  - fin sysinfo
+
+script:
+  - make && make test
+
+after_failure:
+  - make logs
