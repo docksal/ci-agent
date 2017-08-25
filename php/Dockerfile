@@ -12,10 +12,11 @@ RUN apk add --update --no-cache \
     php7-mbstring \
     php7-openssl \
     php7-phar \
+    php7-simplexml \
+    php7-tokenizer \
     php7-xml \
     php7-zlib \
-    && rm -rf /var/cache/apk/* \
-    && ln -s /usr/bin/php7 /usr/bin/php
+    && rm -rf /var/cache/apk/*
 
 ENV COMPOSER_VERSION=1.5.1
 ENV DRUSH_VERSION 8.1.13
