@@ -15,6 +15,7 @@ RUN apk add --update --no-cache \
 	php7-simplexml \
 	php7-tokenizer \
 	php7-xml \
+	php7-xmlwriter \
 	php7-zlib \
 	&& rm -rf /var/cache/apk/*
 
