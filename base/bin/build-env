@@ -124,8 +124,8 @@ artifact_storage_env ()
 {
 	# Single bucket mode (all repos are stored in a single bucket)
 	# If AWS_S3_BUCKET is set, derive BUCKET_PATH from repo name, branch and commit hash
-	if [[ "${AWS_S3_BUCKET}" != "" ]]; then
-		export ARTIFACTS_BUCKET_NAME="${AWS_S3_BUCKET}"
+	if [[ "${ARTIFACTS_BUCKET_NAME}" != "" ]]; then
+		export ARTIFACTS_BUCKET_NAME
 		export ARTIFACTS_BUCKET_PATH="${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"
 	# Multi-bucket module (each repo gets its own bucket)
 	# Otherwise use repo owner and repo name for BUCKET_NAME, git branch and commit hash for BUCKET_PATH
