@@ -138,8 +138,10 @@ artifact_storage_env ()
 		export ARTIFACTS_BUCKET_PATH="${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"
 	fi
 
+	# Derive artifacts base URL from the bucket name, unless ARTIFACTS_BASE_URL has been already defined
+	export ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL:-"https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com"}
 	# Expecting index.html as the default entry point into the bucket/path
-	export ARTIFACTS_URL="https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com/${ARTIFACTS_BUCKET_PATH}/index.html"
+	export ARTIFACTS_URL="${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/index.html"
 }
 
 # -------------------- Runtime -------------------- #
