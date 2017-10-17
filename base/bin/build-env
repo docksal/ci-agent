@@ -122,26 +122,18 @@ sandbox_server_env ()
 # Set environment variables for artifact storage functionality
 artifact_storage_env ()
 {
-	# Single bucket mode (all repos are stored in a single bucket)
-	# If AWS_S3_BUCKET is set, derive BUCKET_PATH from repo name, branch and commit hash
-	if [[ "${ARTIFACTS_BUCKET_NAME}" != "" ]]; then
-		export ARTIFACTS_BUCKET_NAME
-		export ARTIFACTS_BUCKET_PATH="${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"
-	# Multi-bucket module (each repo gets its own bucket)
-	# Otherwise use repo owner and repo name for BUCKET_NAME, git branch and commit hash for BUCKET_PATH
-	else
-		# Using hyphen as a delimiter in the bucket name
-		# With the dot delimiter in BUCKET_NAME Amazon's wildcard cert (*.s3.amazonaws.com) does not work.
-		# E.g. https://my.bucket.name.s3.amazonaws.com/ throws an invalid cert warning.
-		# URLs like https://s3.amazonaws.com/$BUCKET_NAME works in either case (with hyphens or dots in BUCKET_NAME)
-		export ARTIFACTS_BUCKET_NAME="${REPO_NAME_SAFE}-${GIT_REPO_OWNER}"
-		export ARTIFACTS_BUCKET_PATH="${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"
+	if [[ "$ARTIFACTS_BUCKET_NAME" == "" ]]; then
+		echo "Cannot upload artifacts. ARTIFACTS_BUCKET_NAME environment variable is not set."
+		exit
 	fi
 
-	# Derive artifacts base URL from the bucket name, unless ARTIFACTS_BASE_URL has been already defined
+	# Configure ARTIFACTS_BUCKET_PATH, unless it has been already defined
+	export ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH:-"${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"}
+	# Configure ARTIFACTS_BASE_URL, unless it has been already defined
 	export ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL:-"https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com"}
-	# Expecting index.html as the default entry point into the bucket/path
-	export ARTIFACTS_URL="${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/index.html"
+	# Configure ARTIFACTS_URL, unless it has been already defined
+	# By default expecting index.html as the default entry point into the bucket/path
+	export ARTIFACTS_URL=${ARTIFACTS_URL:-"${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/index.html"}
 }
 
 # -------------------- Runtime -------------------- #
