@@ -5,8 +5,8 @@
 #
 # Usage source build-env
 
-# Abort if anything fails
-set -e
+set -e # Abort if anything fails
+#set -x # Echo commands
 
 # -------------------- Constants -------------------- #
 
@@ -119,23 +119,6 @@ sandbox_server_env ()
 	fi
 }
 
-# Set environment variables for artifact storage functionality
-artifact_storage_env ()
-{
-	if [[ "$ARTIFACTS_BUCKET_NAME" == "" ]]; then
-		echo "Cannot upload artifacts. ARTIFACTS_BUCKET_NAME environment variable is not set."
-		exit
-	fi
-
-	# Configure ARTIFACTS_BUCKET_PATH, unless it has been already defined
-	export ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH:-"${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"}
-	# Configure ARTIFACTS_BASE_URL, unless it has been already defined
-	export ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL:-"https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com"}
-	# Configure ARTIFACTS_URL, unless it has been already defined
-	# By default expecting index.html as the default entry point into the bucket/path
-	export ARTIFACTS_URL=${ARTIFACTS_URL:-"${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/index.html"}
-}
-
 # -------------------- Runtime -------------------- #
 
 echo "Configuring build settings..."
@@ -151,7 +134,3 @@ git_env
 # Sandbox server settings
 echo "Configuring sandbox server settings..."
 sandbox_server_env
-
-# Artifact storage
-echo "Configuring artifact storage settings..."
-artifact_storage_env
