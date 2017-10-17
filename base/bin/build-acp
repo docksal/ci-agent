@@ -44,8 +44,8 @@ mc config host add s3 https://s3.amazonaws.com ${AWS_ACCESS_KEY_ID} ${AWS_SECRET
 
 # Create bucket if it does not exist
 mc mb "s3/${ARTIFACTS_BUCKET_NAME}"
-# Upload artifact into the bucket and get the list of files at the destination
-mc cp -r ${source} ${destination}
+# Upload artifact into the bucket
+mc mirror --force --remove ${source} ${destination}
 # Set read-only permissions on BUCKET_PATH
 # Access is possible only if BUCKET_PATH is known (parent bucket stays private => XML listing of bucket objects disabled)
 mc policy download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
