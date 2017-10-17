@@ -27,6 +27,17 @@ source=${1}
 # Sync destination on S3
 destination="s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
 
+if [[ "${source}" == "" ]]; then
+	echo "No source provided."
+	echo "Configuration: "
+	echo "source=${source}"
+	echo "destination=${destination}"
+	echo "ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL}"
+	echo "ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH}"
+	echo "ARTIFACTS_URL=${ARTIFACTS_URL}"
+	exit
+fi
+
 # Initialize minio client (mc) configuration for S3
 # AWS API keys must be set in the build settings
 mc config host add s3 https://s3.amazonaws.com ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY}
