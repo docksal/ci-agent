@@ -40,6 +40,16 @@ build_env ()
 		export GIT_COMMIT_HASH="$CIRCLE_SHA1"
 	fi
 
+	# Support for GitLab 9.0+
+	if [[ "$GITLAB_CI" != "" ]]; then
+		echo "Detected GitLabCI build environment"
+		export GIT_REPO_OWNER="$CI_PROJECT_NAMESPACE"
+		export GIT_REPO_NAME="$CI_PROJECT_NAME"
+		export GIT_REPO_URL="$CI_REPOSITORY_URL"
+		export GIT_BRANCH_NAME="$CI_COMMIT_REF_NAME"
+		export GIT_COMMIT_HASH="$CI_COMMIT_SHA"
+	fi
+
 	# For debug purposes these variables can be set manually.
 	# If they are empty here, then we cannot proceed.
 	if [[ "$GIT_REPO_URL" == "" ]] || [[ "$GIT_BRANCH_NAME" == "" ]] || [[ "$GIT_COMMIT_HASH" == "" ]]; then
