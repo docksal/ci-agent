@@ -6,6 +6,7 @@ RUN apk add --update --no-cache \
 	git \
 	jq \
 	openssh \
+	rsync \
 	sudo \
 	&& rm -rf /var/cache/apk/*
 
