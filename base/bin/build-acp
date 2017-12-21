@@ -26,6 +26,8 @@ ARTIFACTS_URL=${ARTIFACTS_URL:-"${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/i
 source=${1}
 # Sync destination on S3
 destination="s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
+# Allow specifying a subpath within the destination path
+[[ "${2}" != "" ]] && destination="${destination}/${2}"
 
 if [[ "${source}" == "" ]]; then
 	echo "No source provided."
