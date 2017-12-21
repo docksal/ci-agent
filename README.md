@@ -30,15 +30,15 @@ URLs to sandbox environments can be found in the build logs and can also be publ
 
 ### Stable
 
-- `docksal/bitbucket-pipelines-agent` - basic (bash, curl, git, etc.), latest version
-- `docksal/bitbucket-pipelines-agent:php` - basic + php stack tools (composer, drush, drupal console, wp-cli, etc.), latest version
-- `docksal/bitbucket-pipelines-agent:1.0` - basic, specific stable version
-- `docksal/bitbucket-pipelines-agent:1.0-php` - php, specific stable version
+- `docksal/ci-agent:base` - basic (bash, curl, git, etc.), latest version
+- `docksal/ci-agent:php` - basic + php stack tools (composer, drush, drupal console, wp-cli, etc.), latest version
+- `docksal/ci-agent:1.0-base` - basic, specific stable version
+- `docksal/ci-agent:1.0-php` - php, specific stable version
 
 ### Development
 
-- `docksal/bitbucket-pipelines-agent:edge` - base, latest development version
-- `docksal/bitbucket-pipelines-agent:edge-php`, php, latest development version
+- `docksal/ci-agent:edge-base` - base, latest development version
+- `docksal/ci-agent:edge-php`, php, latest development version
 
 
 ## Configuration

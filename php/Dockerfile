@@ -1,4 +1,4 @@
-FROM docksal/bitbucket-pipelines-agent:edge
+FROM docksal/ci-agent:edge
 
 # Switch to root to install some system-wide stuff
 USER root

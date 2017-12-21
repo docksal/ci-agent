@@ -1,4 +1,4 @@
-image: docksal/bitbucket-pipelines-agent:1.0
+image: docksal/ci-agent:edge-php
 
 pipelines:
   default:

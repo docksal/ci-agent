@@ -4,7 +4,7 @@ jobs:
   build:
     working_directory: /home/agent/build
     docker:
-      - image: docksal/bitbucket-pipelines-agent:edge
+      - image: docksal/ci-agent:edge-php
     environment:
        BASH_ENV: /home/agent/.bashrc  # Tell CircleCI where to read the shared build environment variables from
     steps:
