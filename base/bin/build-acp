@@ -60,7 +60,7 @@ echo "Files:"
 mc ls ${destination}
 
 # Post artifacts to Bitbucket build status API
-if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
+if [[ "${BITBUCKET_REPO_SLUG}" != "" ]] && [[ "${BITBUCKET_API_AUTH}" != "" ]]; then
 	echo "Posting artifacts URL to Bitbucket..."
 
 	BUILD_STATUS_URL="${ARTIFACTS_URL}"
