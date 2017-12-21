@@ -20,8 +20,8 @@ RUN \
 	ln -s /lib/libz.so.1 /usr/glibc-compat/lib/ && \
 	ln -s /lib/libc.musl-x86_64.so.1 /usr/glibc-compat/lib
 
-ARG DOCKER_VERSION=17.06.0-ce
-ARG DOCKER_COMPOSE_VERSION=1.14.0
+ARG DOCKER_VERSION=17.09.1-ce
+ARG DOCKER_COMPOSE_VERSION=1.18.0
 RUN \
 	# Install docker cli
 	curl -sSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz" && \
