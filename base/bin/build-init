@@ -20,3 +20,14 @@ if [[ $HTTP_USER != "" ]] && [[ $HTTP_PASS != "" ]]; then
 fi
 #echo "Launching fin init..."
 #ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
+
+# Post sandbox URL to Bitbucket build status API
+# Note: this happens before the actual sandbox is up and does not reflect the actual sandbox build status,
+# just provide an easier way to view the sandbox URL in Bitbucket UI (instead of digging through build logs).
+if [[ "${BITBUCKET_REPO_SLUG}" != "" ]] && [[ "${BITBUCKET_API_AUTH}" != "" ]]; then
+	echo "Posting sandbox URL to Bitbucket..."
+
+	BUILD_STATUS_PAYLOAD="{\"key\": \"artifacts\", \"state\": \"SUCCESSFUL\", \"name\": \"Sandbox environment\", \"url\": \"${DOMAIN}\"}"
+	BITBUCKET_API_URL="https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/commit/${BITBUCKET_COMMIT}/statuses/build"
+	curl -sS -H "Content-Type: application/json" -X POST --user "${BITBUCKET_API_AUTH}" -d "${BUILD_STATUS_PAYLOAD}" "${BITBUCKET_API_URL}" >/dev/null
+fi
