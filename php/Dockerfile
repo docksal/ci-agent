@@ -37,22 +37,20 @@ RUN \
 	chmod +x /usr/local/bin/*
 
 # Switch back to user
-ARG AGENT_USER=agent
 USER $AGENT_USER
 
-ENV PATH $PATH:$HOME/.composer/vendor/bin
+ENV PATH $PATH:$AGENT_HOME/.composer/vendor/bin
 RUN \
 	# Add composer bin directory to PATH
-	echo "\n"'PATH="$PATH:$HOME/.composer/vendor/bin"' >> $HOME/.profile && \
+	echo "\n"'PATH="$PATH:$AGENT_HOME/.composer/vendor/bin"' >> $AGENT_HOME/.profile && \
 	# Drush modules
-	drush dl registry_rebuild --default-major=7 --destination=$HOME/.drush && \
+	drush dl registry_rebuild --default-major=7 --destination=$AGENT_HOME/.drush && \
 	drush cc drush && \
 	# Drupal Coder w/ a matching version of PHP_CodeSniffer
 	composer global require drupal/coder && \
-	phpcs --config-set installed_paths $HOME/.composer/vendor/drupal/coder/coder_sniffer && \
+	phpcs --config-set installed_paths $AGENT_HOME/.composer/vendor/drupal/coder/coder_sniffer && \
 	# Cleanup
 	composer clear-cache
 
-COPY config/.drush $HOME/.drush
-# Fix permissions after COPY
-RUN sudo chown -R $AGENT_USER:$AGENT_USER $HOME
+# Cannot use variables with COPY --chown. See https://github.com/moby/moby/issues/35018
+COPY --chown=agent:agent config/.drush $AGENT_HOME/.drush

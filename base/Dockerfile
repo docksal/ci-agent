@@ -33,8 +33,8 @@ RUN \
 	curl -sSL https://dl.minio.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc && \
 	chmod +x /usr/local/bin/mc
 
-ARG AGENT_USER=agent
-ARG AGENT_HOME=/home/agent
+ENV AGENT_USER=agent
+ENV AGENT_HOME=/home/agent
 RUN \
 	# Create a non-root user with access to sudo
 	adduser -h $AGENT_HOME -s /bin/bash -D $AGENT_USER && \
@@ -42,7 +42,6 @@ RUN \
 
 # All further RUN commands will run as the "agent" user
 USER $AGENT_USER
-ENV HOME $AGENT_HOME
 
 RUN \
 	mkdir -p $AGENT_HOME/.ssh && \
@@ -50,7 +49,9 @@ RUN \
 
 COPY bin /usr/local/bin
 COPY config/.ssh/config $AGENT_HOME/.ssh/config
-# Fix permissions after COPY
-RUN sudo chown -R $AGENT_USER:$AGENT_USER $AGENT_HOME/.ssh/config
+# Fix permissions after COPY (could use COPY --chown, but will still need to run chmod)
+RUN \
+	sudo chown $AGENT_USER:$AGENT_USER $AGENT_HOME/.ssh/config && \
+	sudo chmod 600 $AGENT_HOME/.ssh/config
 
 WORKDIR $AGENT_HOME/build
