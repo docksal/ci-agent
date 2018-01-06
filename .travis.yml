@@ -14,27 +14,14 @@ install:
 
 script:
   # Build base first, then php
-  - export VERSION=base && make && make test
-  - export VERSION=php && make && make test
+  - make VERSION=base && make test VERSION=base
+  - make VERSION=php && make test VERSION=php
 
 after_success: |
+  # Push images to Docker Hub
   if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
-    [[ "${TRAVIS_BRANCH}" == "develop" ]] && TAG="edge-${VERSION}"
-    [[ "${TRAVIS_BRANCH}" == "master" ]] && TAG="${VERSION}"
-    [[ "${TRAVIS_TAG}" != "" ]] && TAG="${TRAVIS_TAG:1:3}-${VERSION}"
-
-    if [[ "$TAG" != "" ]]; then
-      docker login -u "${DOCKER_USER}" -p "${DOCKER_PASS}"
-      # Push edge, stable and release tags
-      docker tag ${REPO}:${VERSION} ${REPO}:${TAG}
-      docker push ${REPO}:${TAG}
-
-      # Push "latest" tag
-      if [[ "${TRAVIS_BRANCH}" == "master" ]] && [[ "${VERSION}" == "base" ]]; then
-        docker tag ${REPO}:${VERSION} ${REPO}:latest
-        docker push ${REPO}:latest
-      fi
-    fi
+    scripts/push-image.sh base
+    scripts/push-image.sh php
   fi
 
 after_failure:
