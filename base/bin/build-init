@@ -39,11 +39,11 @@ if [[ "$CIRCLECI" != "" ]]; then
 		echo "Posting sandbox URL to Github..."
 		URL="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pull/";
 		PULL_REQUEST_ID=$(echo $CI_PULL_REQUEST | sed "s#${URL}##g")
-		curl -sS -H "Content-Type: application/json" -H "Accept: application/vnd.github.v3.full+json" -H "Authorization: token ${GITHUB_TOKEN}" -X POST --data "{\"body\": \"Sandbox environment: ${DOMAIN}\"}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${PULL_REQUEST_ID}/comments
+		curl -sS -H "Content-Type: application/json" -H "Accept: application/vnd.github.v3.full+json" -H "Authorization: token ${GITHUB_TOKEN}" -X POST --data "{\"body\": \"Sandbox environment: http://${DOMAIN}\"}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${PULL_REQUEST_ID}/comments
 	elif [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.com"* ]] && [[ "${BITBUCKET_TOKEN}" != "" ]] && [[ "${CI_PULL_REQUEST}" != "" ]]; then
 		echo "Posting sandbox URL to Bitbucket..."
 		URL="https://bitbucket.org/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pull-requests/";
 		PULL_REQUEST_ID=$(echo $CI_PULL_REQUEST | sed "s#${URL}##g")
-		curl -sS --user "${BITBUCKET_API_AUTH}" -X POST --data "content=\"Sandbox environment: ${DOMAIN}\"" https://api.bitbucket.org/1.0/repositories/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pullrequests/${PULL_REQUEST_ID}/comments
+		curl -sS --user "${BITBUCKET_API_AUTH}" -X POST --data "content=\"Sandbox environment: http://${DOMAIN}\"" https://api.bitbucket.org/1.0/repositories/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pullrequests/${PULL_REQUEST_ID}/comments
 	fi
 fi
