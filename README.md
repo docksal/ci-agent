@@ -64,6 +64,11 @@ A secondary SSH key (base64 encoded as well), which can be used for deployments 
 on the agent.  
 E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
 
+`REMOTE_BUILD_BASE`
+
+The directory location on the remote server where the repositories should be cloned down to and built. 
+Defaults to `/home/ubuntu/builds`
+
 Other features and integrations are usually configured at the Bitbucket repo level. See below.
 
 ### Bitbucket Pipelines
