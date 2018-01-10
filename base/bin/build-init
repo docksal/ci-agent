@@ -31,3 +31,19 @@ if [[ "${BITBUCKET_REPO_SLUG}" != "" ]] && [[ "${BITBUCKET_API_AUTH}" != "" ]]; 
 	BITBUCKET_API_URL="https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/commit/${BITBUCKET_COMMIT}/statuses/build"
 	curl -sS -H "Content-Type: application/json" -X POST --user "${BITBUCKET_API_AUTH}" -d "${BUILD_STATUS_PAYLOAD}" "${BITBUCKET_API_URL}" >/dev/null
 fi
+
+# Post sandbox URL to either Github or Bitbucket Pull Request
+# Note: this happens before the actual sandbox is up and does not reflect the actual sandbox build status
+if [[ "$CIRCLECI" != "" ]]; then
+	if [[ $CIRCLE_REPOSITORY_URL == *"github.com"* ]] && [[ "${GITHUB_TOKEN}" != "" ]] && [[ "${CI_PULL_REQUEST}" != "" ]]; then
+		echo "Posting sandbox URL to Github..."
+		URL="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pull/";
+		PULL_REQUEST_ID=$(echo $CI_PULL_REQUEST | sed "s#${URL}##g")
+		curl -sS -H "Content-Type: application/json" -H "Accept: application/vnd.github.v3.full+json" -H "Authorization: token ${GITHUB_TOKEN}" -X POST --data "{\"body\": \"Sandbox environment: http://${DOMAIN}\"}" https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${PULL_REQUEST_ID}/comments
+	elif [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.com"* ]] && [[ "${BITBUCKET_TOKEN}" != "" ]] && [[ "${CI_PULL_REQUEST}" != "" ]]; then
+		echo "Posting sandbox URL to Bitbucket..."
+		URL="https://bitbucket.org/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pull-requests/";
+		PULL_REQUEST_ID=$(echo $CI_PULL_REQUEST | sed "s#${URL}##g")
+		curl -sS --user "${BITBUCKET_API_AUTH}" -X POST --data "content=\"Sandbox environment: http://${DOMAIN}\"" https://api.bitbucket.org/1.0/repositories/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pullrequests/${PULL_REQUEST_ID}/comments
+	fi
+fi

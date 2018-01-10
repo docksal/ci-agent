@@ -75,6 +75,21 @@ repo and adjust as necessary.
 
 Copy the example [config.yml](examples/.circleci/config.yml) file into the project repo and adjust as necessary.
 
+#### Github
+
+This integration allows the agent to post a comment back to the provided Pull Request.
+
+`GITHUB_TOKEN`
+
+The token can be generated from the [user's account](https://github.com/settings/tokens).
+
+#### Bitbucket
+
+This integration allows the agent to post a comment back to the provided Pull Request.
+
+`BITBUCKET_TOKEN`
+
+The token can be generated from the user's settings. Instructions on creating an [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html). When storing the app password it is in the format: `USER:PASSWORD`
 
 ## Basic HTTP Auth
 
