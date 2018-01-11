@@ -46,12 +46,11 @@ if [[ "$CIRCLECI" != "" ]]; then
 		PAYLOAD="{\"body\": \"Sandbox environment: http://${DOMAIN}\"}"
 		API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/issues/${GIT_PR_NUMBER}/comments"
 		
-		curl -sS --request POST \
+		curl -sS --request POST "${API_URL}" \
 			--header "Content-Type: application/json" \
 			--header "Accept: application/vnd.github.v3.full+json" \
 			--header "Authorization: token ${GITHUB_TOKEN}" \
-			--data "${PAYLOAD}" \
-			"${API_URL}" >/dev/null
+			--data "${PAYLOAD}"
 	fi
 
 	# Bitbucket
