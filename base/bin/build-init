@@ -27,7 +27,7 @@ fi
 if [[ "${BITBUCKET_REPO_SLUG}" != "" ]] && [[ "${BITBUCKET_API_AUTH}" != "" ]]; then
 	echo "Posting sandbox URL to Bitbucket..."
 
-	BUILD_STATUS_PAYLOAD="{\"key\": \"artifacts\", \"state\": \"SUCCESSFUL\", \"name\": \"Sandbox environment\", \"url\": \"${DOMAIN}\"}"
+	BUILD_STATUS_PAYLOAD="{\"key\": \"artifacts\", \"state\": \"SUCCESSFUL\", \"name\": \"Sandbox environment\", \"url\": \"http://${DOMAIN}\"}"
 	BITBUCKET_API_URL="https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/commit/${BITBUCKET_COMMIT}/statuses/build"
 	curl -sS -H "Content-Type: application/json" -X POST --user "${BITBUCKET_API_AUTH}" -d "${BUILD_STATUS_PAYLOAD}" "${BITBUCKET_API_URL}" >/dev/null
 fi
