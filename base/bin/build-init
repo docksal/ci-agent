@@ -40,7 +40,7 @@ fi
 # Note: this happens before the actual sandbox is up and does not reflect the actual sandbox build status
 if [[ "$CIRCLECI" != "" ]]; then
 	# Github
-	if [[ "${CIRCLE_REPOSITORY_URL}" == *"github.com"* ]] && [[ "${GITHUB_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
+	if [[ "${GIT_REPO_SERVICE}" == "github" ]] && [[ "${GITHUB_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
 		echo "Posting sandbox URL to Github pull request..."
 		
 		PAYLOAD="{\"body\": \"Sandbox environment: http://${DOMAIN}\"}"
@@ -55,7 +55,7 @@ if [[ "$CIRCLECI" != "" ]]; then
 	fi
 
 	# Bitbucket
-	if [[ "${CIRCLE_REPOSITORY_URL}" == *"bitbucket.com"* ]] && [[ "${BITBUCKET_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
+	if [[ "${GIT_REPO_SERVICE}" == "bitbucket" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
 		echo "Posting sandbox URL to Bitbucket pull request..."
 		
 		PAYLOAD="content=\"Sandbox environment: http://${DOMAIN}\""
