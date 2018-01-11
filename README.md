@@ -90,7 +90,10 @@ The token can be generated from the [user's account](https://github.com/settings
 
 #### Bitbucket
 
-This integration allows the agent to post a comment back to the provided Pull Request.
+This integration allows the agent to post build information back to Bitbucket:
+
+- Post sandbox and artifact URLs in a comment to the provided Pull Request
+- Post sandbox and artifact URLs via [Bitbucket Build Status API](https://blog.bitbucket.org/2015/11/18/introducing-the-build-status-api-for-bitbucket-cloud/).
 
 `BITBUCKET_TOKEN`
 
@@ -149,7 +152,8 @@ Set the following environment variables at the organization or repo level:
 - `AWS_SECRET_ACCESS_KEY`
 - `ARTIFACTS_BUCKET_NAME`
 - `ARTIFACTS_BASE_URL` (optional)
-- `BITBUCKET_API_AUTH` (optional)
+- `GITHUB_TOKEN` (optional)
+- `BITBUCKET_TOKEN` (optional)
 
 ### Usage
 
@@ -206,11 +210,8 @@ build-acp my-artifacts/
 
 **Posting build artifact URLs to Bitbucket**
 
-If the `BITBUCKET_API_AUTH` is set, the URL to the artifacts will be posted back to Bitbucket via 
+If `BITBUCKET_TOKEN` is set, the URL to the artifacts will be posted back to Bitbucket via 
 [Bitbucket Build Status API](https://blog.bitbucket.org/2015/11/18/introducing-the-build-status-api-for-bitbucket-cloud/).
-
-See [this article](https://confluence.atlassian.com/bitbucket/publish-and-link-your-build-artifacts-872137736.html) for 
-information on how to get `BITBUCKET_API_AUTH` (steps 1 and 2 only).
 
 ### Security
 
