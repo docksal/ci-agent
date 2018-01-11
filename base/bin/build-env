@@ -45,12 +45,10 @@ build_env ()
 		# Figure out the pull request number
 		# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
 		if [[ $CIRCLE_REPOSITORY_URL == *"github.com"* ]]; then
-			PR_URL="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pull/"
-			export GIT_PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | sed "s#${PR_URL}##g")
+			export GIT_PR_NUMBER="$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\/pull\///')"
 		fi
-		if [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.com"* ]]; then
-			PR_URL="https://bitbucket.org/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pull-requests/"
-			export GIT_PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | sed "s#${PR_URL}##g")
+		if [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.org"* ]]; then
+			export GIT_PR_NUMBER="$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\/pull-requests\///')"
 		fi
 	fi
 
