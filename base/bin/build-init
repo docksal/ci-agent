@@ -58,14 +58,12 @@ if [[ "$CIRCLECI" != "" ]]; then
 	if [[ "${GIT_REPO_SERVICE}" == "bitbucket" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
 		echo "Posting sandbox URL to Bitbucket pull request..."
 		
-		PAYLOAD="content=\"Sandbox environment: http://${DOMAIN}\""
+		PAYLOAD="content=Sandbox environment: http://${DOMAIN}"
 		# Posting comments to PRs is only available in BB API 1.0
 		API_URL="https://api.bitbucket.org/1.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/pullrequests/${GIT_PR_NUMBER}/comments"
 		
-		curl -sS --request POST \
-			--header "Content-Type: application/json" \
+		curl -sS --request POST "${API_URL}" \
 			--user "${BITBUCKET_TOKEN}" \
-			--data "${PAYLOAD}" \
-			"${API_URL}" >/dev/null
+			--data "${PAYLOAD}"
 	fi
 fi
