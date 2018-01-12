@@ -32,12 +32,16 @@ github_status_api ()
 	local description="$3"
 	local url="$4"
 
-	echo "Notifying Github Status API: ${key} => ${state}"
+	echo "Notifying Github Status API: ${context} => ${state}"
 
 	PAYLOAD="{\"state\": \"${state}\",\"target_url\": \"${url}\",\"description\": \"${description}\",\"context\": \"${context}\"}"
 	API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/statuses/${GIT_COMMIT_HASH}"
 
-	curl -sS --request POST "${API_URL}" --header "Authorization: token ${GITHUB_TOKEN}" --data "${PAYLOAD}"
+	curl -sS --request POST "${API_URL}" \
+		--header "Content-Type: application/json" \
+		--header "Accept: application/vnd.github.v3.full+json" \
+		--header "Authorization: token ${GITHUB_TOKEN}" \
+		--data "${PAYLOAD}"
 }
 
 # Calls Bitbucket Pipelines status API (commit/branch level status updates)
@@ -60,7 +64,7 @@ bitbucket_status_api ()
 	local description="$3"
 	local url="$4"
 
-	echo "Notifying Bitbucket Status API: ${key} => ${state}"
+	echo "Notifying Bitbucket Status API: ${context} => ${state}"
 
 	PAYLOAD="{\"key\": \"${context}\", \"state\": \"${state}\", \"description\": \"${description}\", \"url\": \"${url}\"}"
 	API_URL="https://api.bitbucket.org/2.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/commit/${GIT_COMMIT_HASH}/statuses/build"
