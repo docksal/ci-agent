@@ -122,6 +122,8 @@ notify_pending ()
 
 	[[ "$GIT_REPO_SERVICE" == "bitbucket" ]] && bitbucket_status_api "$CONTEXT" "INPROGRESS" "$description" "$URL"
 	[[ "$GIT_REPO_SERVICE" == "github" ]] && github_status_api "$CONTEXT" "pending" "$description" "$URL"
+
+	return 0
 }
 
 notify_success ()
@@ -138,6 +140,8 @@ notify_success ()
 		[[ "${GIT_REPO_SERVICE}" == "github" ]] && github_pr_comment "$comment"
 		[[ "${GIT_REPO_SERVICE}" == "bitbucket" ]] && bitbucket_pr_comment "$comment"
 	fi
+
+	return 0
 }
 
 notify_failure ()
@@ -146,6 +150,8 @@ notify_failure ()
 
 	[[ "$GIT_REPO_SERVICE" == "bitbucket" ]] && bitbucket_status_api "$CONTEXT" "FAILED" "$description" "$URL"
 	[[ "$GIT_REPO_SERVICE" == "github" ]] && github_status_api "$CONTEXT" "failure" "$description" "$URL"
+
+	return 0
 }
 
 #-------------------------- RUNTIME STARTS HERE ----------------------------
