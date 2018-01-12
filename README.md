@@ -41,10 +41,10 @@ URLs to sandbox environments can be found in the build logs and can also be publ
 - `docksal/ci-agent:edge-php`, php, latest development version
 
 
-## Configuration
+## Global Configuration
 
-The following required variables should be configured at the Bitbucket organization level (this way all
-project repos will have access to them). 
+The following required variables are usually configured at the organization level. This way, all project repos will 
+have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
@@ -69,37 +69,28 @@ E.g. cloning/pushing a repo, running commands over SSH on a remote deployment en
 The directory location on the remote server where the repositories should be cloned down to and built. 
 Defaults to `/home/ubuntu/builds`
 
-Other features and integrations are usually configured at the Bitbucket repo level. See below.
+`GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
-### Bitbucket Pipelines
+Used for access to post sandbox URLs via build status API as well as comments on pull requests.  
 
-Copy the example [bitbucket-pipelines.yml](examples/bitbucket-pipelines/bitbucket-pipelines.yml) file into the project 
-repo and adjust as necessary.
+For Github, the token can be generated from the [user's account](https://github.com/settings/tokens).  
+Set access to "repo" (http://take.ms/nMqcW).
 
-### CircleCI
+For Bitbucket, the token can be generated from the user's settings. Instructions on creating an [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html).  
+Set access to "Repositories: Write", "Pull requests: Write" (http://take.ms/98BG5).  
+When storing the app password it is in the format: `USER:PASSWORD`.
 
-Copy the example [config.yml](examples/.circleci/config.yml) file into the project repo and adjust as necessary.
+Other features and integrations are usually configured at the repo level. See below.
 
-#### Github
 
-This integration allows the agent to post a comment back to the provided Pull Request.
+## Project configuration
 
-`GITHUB_TOKEN`
+For Bitbucket Pipelines, copy the example [bitbucket-pipelines.yml](examples/bitbucket-pipelines/bitbucket-pipelines.yml) 
+file into the project repo and adjust as necessary.
 
-The token can be generated from the [user's account](https://github.com/settings/tokens).
+For CircleCI, copy the example [config.yml](examples/.circleci/config.yml) file into the project repo and adjust as necessary.
 
-#### Bitbucket
-
-This integration allows the agent to post build information back to Bitbucket:
-
-- Post sandbox and artifact URLs in a comment to the provided Pull Request
-- Post sandbox and artifact URLs via [Bitbucket Build Status API](https://blog.bitbucket.org/2015/11/18/introducing-the-build-status-api-for-bitbucket-cloud/).
-
-`BITBUCKET_TOKEN`
-
-The token can be generated from the user's settings. Instructions on creating an [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html). When storing the app password it is in the format: `USER:PASSWORD`
-
-## Basic HTTP Auth
+## Feature: Basic HTTP Auth
 
 Protect sandboxes from public access using Basic HTTP authentication.
 
@@ -111,7 +102,31 @@ Set the following environment variables at the repo level:
 - `HTTP_PASS`
 
 
-## Slack integration
+## Feature: Build status notifications
+
+This integration allows the agent to post build status updates and sandbox URL via Github/Bitbucket build status API.  
+For CircleCI, it is also possible to enable posting the sandbox URL as a comment in pull requests. 
+
+### Configuration
+
+`GITHUB_TOKEN` or `BITBUCKET_TOKEN` must be configured respectively (either globally or at the repo level). 
+
+### Usage
+
+`build-notify <pending|success|failure>`
+
+Place the triggers right before and right after `fin init` call in your build script, e.g.
+
+```bash
+build-notify pending 
+ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
+if [[ $? == 0 ]]; then build-notify success; else build-notify failure; fi
+```
+
+To enable posting sandbox URLs in comments on pull requests, do `export PR_COMMENT=1` prior to calling `build-notify`
+
+
+## Feature: Slack notifications
 
 This integrations allows the agent to post messages to a given Slack channel.  
 It can be used for notification purposes when a build is started, completed, failed, etc.
@@ -140,7 +155,7 @@ Channel and webhook url can be passed via environment variables. See above.
 Incoming Webhook integration won't work for private channels, which the owner of the integration does not belong to.
 
 
-## Build artifact storage
+## Feature: Build artifact storage
 
 Build artifacts can be stored in an AWS S3 bucket.  
 
