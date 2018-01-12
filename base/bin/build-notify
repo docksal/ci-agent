@@ -1,52 +1,163 @@
 #!/usr/bin/env bash
 
-# Posts sandbox environment URL to:
-# - Github pull request comment
-# - Bitbucket pull request comment
-# - Bitbucket Status API
-# 
-# Call after sandbox provisioning commands in your build script.
+# Build status notifications
+# Can post updates via builds status API (Github and Bitbucket) and/or pull request comments
 
-# Bitbucket Pipelines: Post sandbox URL to Bitbucket build status API (commit/branch level status)
-if [[ "${BITBUCKETCI}" != "" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]]; then
-	echo "Posting sandbox URL to Bitbucket Status API..."
+#-------------------------- SETTINGS ----------------------------
 
-	PAYLOAD="{\"key\": \"artifacts\", \"state\": \"SUCCESSFUL\", \"name\": \"Sandbox environment\", \"url\": \"http://${DOMAIN}\"}"
-	API_URL="https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/commit/${BITBUCKET_COMMIT}/statuses/build"
-	
-	curl -sS --request POST \
+export CONTEXT="ci/docksal"  # Context for notifications
+export URL="http://${DOMAIN}"  # Sandbox URL
+export STATUS_API=${STATUS_API:-1}  # Status API notifications enabled by default
+export PR_COMMENT=${PR_COMMENT:-0}  # PR comment notifications disabled by default
+
+#-------------------------- FUNCTIONS ----------------------------
+
+# Calls Github status API (commit/branch level status updates)
+# API docs: https://developer.github.com/v3/repos/statuses/
+#
+# @param $1 context - unique key for this status (e.g. sandbox, artifacts)
+# @param $2 state - error, failure, pending, or success
+# @param $3 description - description of the status update
+# @param $4 url - status link URL
+#
+# Example: github_status_api "sandbox" "pending" "Started building sandbox environment" "http://${DOMAIN}"
+#
+github_status_api ()
+{
+	[[ "${GIT_REPO_SERVICE}" != "github" ]] && return
+	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Warning: GITHUB_TOKEN not set" && return
+
+	local context="$1"
+	local state="$2"
+	local description="$3"
+	local url="$4"
+
+	echo "Notifying Github Status API: ${key} => ${state}"
+
+	PAYLOAD="{\"state\": \"${state}\",\"target_url\": \"${url}\",\"description\": \"${description}\",\"context\": \"${context}\"}"
+	API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/statuses/${GIT_COMMIT_HASH}"
+
+	curl -sS --request POST "${API_URL}" --header "Authorization: token ${GITHUB_TOKEN}" --data "${PAYLOAD}"
+}
+
+# Calls Bitbucket Pipelines status API (commit/branch level status updates)
+# API docs: https://developer.atlassian.com/bitbucket/api/2/reference/resource/repositories/%7Busername%7D/%7Brepo_slug%7D/commit/%7Bnode%7D/statuses/build
+#
+# @param $1 context - unique key for this status (e.g. sandbox, artifacts)
+# @param $2 state - SUCCESSFUL, FAILED, INPROGRESS, STOPPED
+# @param $3 description - description of the status update
+# @param $4 url - status link URL
+#
+# Example: bitbucket_status_api "sandbox" "INPROGRESS" "Sandbox environment" "http://${DOMAIN}"
+#
+bitbucket_status_api ()
+{
+	[[ "${GIT_REPO_SERVICE}" != "bitbucket" ]] && return
+	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Warning: BITBUCKET_TOKEN not set" && return
+
+	local context="$1"
+	local state="$2"
+	local description="$3"
+	local url="$4"
+
+	echo "Notifying Bitbucket Status API: ${key} => ${state}"
+
+	PAYLOAD="{\"key\": \"${context}\", \"state\": \"${state}\", \"description\": \"${description}\", \"url\": \"${url}\"}"
+	API_URL="https://api.bitbucket.org/2.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/commit/${GIT_COMMIT_HASH}/statuses/build"
+
+	curl -sS --request POST "${API_URL}" \
 		--header "Content-Type: application/json" \
 		--user "${BITBUCKET_TOKEN}" \
-		--data "${PAYLOAD}" \
-		"${API_URL}" >/dev/null
-fi
+		--data "${PAYLOAD}"
+}
 
-# CircleCI: Post sandbox URL to either Github or Bitbucket Pull Request
-if [[ "$CIRCLECI" != "" ]]; then
-	# Github
-	if [[ "${GIT_REPO_SERVICE}" == "github" ]] && [[ "${GITHUB_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
-		echo "Posting sandbox URL to Github pull request..."
-		
-		PAYLOAD="{\"body\": \"Sandbox environment: http://${DOMAIN}\"}"
-		API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/issues/${GIT_PR_NUMBER}/comments"
-		
-		curl -sS --request POST "${API_URL}" \
-			--header "Content-Type: application/json" \
-			--header "Accept: application/vnd.github.v3.full+json" \
-			--header "Authorization: token ${GITHUB_TOKEN}" \
-			--data "${PAYLOAD}"
-	fi
+# Posts a comment to a pull request in Github
+# @param $1 - comment
+github_pr_comment ()
+{
+	[[ "${GIT_REPO_SERVICE}" != "github" ]] && return
+	[[ "${GIT_PR_NUMBER}" == "" ]] && return
+	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Warning: GITHUB_TOKEN not set" && return
 
-	# Bitbucket
-	if [[ "${GIT_REPO_SERVICE}" == "bitbucket" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]] && [[ "${GIT_PR_NUMBER}" != "" ]]; then
-		echo "Posting sandbox URL to Bitbucket pull request..."
-		
-		PAYLOAD="content=Sandbox environment: http://${DOMAIN}"
-		# Posting comments to PRs is only available in BB API 1.0
-		API_URL="https://api.bitbucket.org/1.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/pullrequests/${GIT_PR_NUMBER}/comments"
-		
-		curl -sS --request POST "${API_URL}" \
-			--user "${BITBUCKET_TOKEN}" \
-			--data "${PAYLOAD}"
+	local comment="$1"
+
+	echo "Posting sandbox URL to Github pull request..."
+	PAYLOAD="{\"body\": \"${comment}\"}"
+	API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/issues/${GIT_PR_NUMBER}/comments"
+
+	curl -sS --request POST "${API_URL}" \
+		--header "Content-Type: application/json" \
+		--header "Accept: application/vnd.github.v3.full+json" \
+		--header "Authorization: token ${GITHUB_TOKEN}" \
+		--data "${PAYLOAD}"
+}
+
+# Posts a comment to a pull request in Bitbucket
+# @param $1 - comment
+bitbucket_pr_comment ()
+{
+	[[ "${GIT_REPO_SERVICE}" != "bitbucket" ]] && return
+	[[ "${GIT_PR_NUMBER}" == "" ]] && return
+	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Warning: BITBUCKET_TOKEN not set" && return
+
+	local comment="$1"
+
+	echo "Posting sandbox URL to Bitbucket pull request..."
+	PAYLOAD="content=${comment}"
+	# Posting comments to PRs is only available in BB API 1.0
+	API_URL="https://api.bitbucket.org/1.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/pullrequests/${GIT_PR_NUMBER}/comments"
+
+	curl -sS --request POST "${API_URL}" \
+		--user "${BITBUCKET_TOKEN}" \
+		--data "${PAYLOAD}"
+}
+
+notify_pending ()
+{
+	description="Started building sandbox environment"
+
+	[[ "$GIT_REPO_SERVICE" == "bitbucket" ]] && bitbucket_status_api "$CONTEXT" "INPROGRESS" "$description" "$URL"
+	[[ "$GIT_REPO_SERVICE" == "github" ]] && github_status_api "$CONTEXT" "pending" "$description" "$URL"
+}
+
+notify_success ()
+{
+	description="Sandbox environment build completed"
+
+	[[ "$GIT_REPO_SERVICE" == "bitbucket" ]] && bitbucket_status_api "$CONTEXT" "SUCCESSFUL" "$description" "$URL"
+	[[ "$GIT_REPO_SERVICE" == "github" ]] && github_status_api "$CONTEXT" "success" "$description" "$URL"
+
+	# Post comment to a pull request on success only
+	# Note: pull request builds are not supported by Bitbucket Pipelines
+	if [[ "$CIRCLECI" != "" ]] && [[ "$PR_COMMENT" != 0 ]]; then
+		comment="$description: http://${DOMAIN}"
+		[[ "${GIT_REPO_SERVICE}" == "github" ]] && github_pr_comment "$comment"
+		[[ "${GIT_REPO_SERVICE}" == "bitbucket" ]] && bitbucket_pr_comment "$comment"
 	fi
-fi
+}
+
+notify_failure ()
+{
+	description="Sandbox environment build failed"
+
+	[[ "$GIT_REPO_SERVICE" == "bitbucket" ]] && bitbucket_status_api "$CONTEXT" "FAILED" "$description" "$URL"
+	[[ "$GIT_REPO_SERVICE" == "github" ]] && github_status_api "$CONTEXT" "failure" "$description" "$URL"
+}
+
+#-------------------------- RUNTIME STARTS HERE ----------------------------
+
+# Post build state via status API
+case "$1" in
+	pending)
+		notify_pending
+		;;
+	success)
+		notify_success
+		;;
+	failure)
+		notify_failure
+		;;
+	*)
+		echo "Usage: build-notify <pending|success|failure>"
+		;;
+esac
