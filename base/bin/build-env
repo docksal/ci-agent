@@ -24,6 +24,7 @@ build_env ()
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
 		echo "Detected Bitbucket Pipelines build environment"
 		export BITBUCKETCI="true"
+		export GIT_REPO_SERVICE="bitbucket"
 		export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
 		export GIT_REPO_NAME="$BITBUCKET_REPO_SLUG"
 		export GIT_REPO_URL="git@bitbucket.org:$GIT_REPO_OWNER/$GIT_REPO_NAME.git"
@@ -59,6 +60,7 @@ build_env ()
 	# Support for GitLab 9.0+
 	if [[ "$GITLAB_CI" != "" ]]; then
 		echo "Detected GitLabCI build environment"
+		export GIT_REPO_SERVICE="gitlab"
 		export GIT_REPO_OWNER="$CI_PROJECT_NAMESPACE"
 		export GIT_REPO_NAME="$CI_PROJECT_NAME"
 		export GIT_REPO_URL="$CI_REPOSITORY_URL"
