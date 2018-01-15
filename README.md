@@ -119,8 +119,8 @@ Place the triggers right before and right after `fin init` call in your build sc
 
 ```bash
 build-notify pending 
-ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
-if [[ $? == 0 ]]; then build-notify success; else build-notify failure; fi
+ssh docker-host "cd $REMOTE_BUILD_DIR && fin init" || ( build-notify failure && exit 1 )
+build-notify success
 ```
 
 To enable posting sandbox URLs in comments on pull requests, do `export PR_COMMENT=1` prior to calling `build-notify`
