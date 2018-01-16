@@ -52,6 +52,10 @@ The address of the remote Docksal host, which will be hosting sandboxes. Configu
 If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
 If using `DOCKSAL_HOST_IP`, the agent will use `xip.io` for dynamic wildcard domain names for sandboxes.
 
+`DOCKSAL_HOST_USER`
+
+The user's name that should have access to the remote Docksal host. Defaults to `ubuntu`.
+
 `DOCKSAL_HOST_SSH_KEY`
 
 A base64 encoded private SSH key used to access the remote Docksal host.  
@@ -60,8 +64,9 @@ tutorial for details.
 
 `CI_SSH_KEY`
 
-A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly
-on the agent.  
+
+A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly 
+on the agent.
 E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
 
 `REMOTE_BUILD_BASE`
@@ -79,6 +84,14 @@ Set access to "repo" (http://take.ms/nMqcW).
 For Bitbucket, the token can be generated from the user's settings. Instructions on creating an [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html).  
 Set access to "Repositories: Write", "Pull requests: Write" (http://take.ms/98BG5).  
 When storing the app password it is in the format: `USER:PASSWORD`.
+
+`GIT_USER_EMAIL`
+
+The user's email to perform Git operations as. Defaults to `ci@docksal.io`
+
+`GIT_USER_NAME`
+
+The user's name to perform Git operations as. Defaults to `Docksal CI`
 
 Other features and integrations are usually configured at the repo level. See below.
 
@@ -140,9 +153,9 @@ For CircleCI, it is also possible to enable posting the sandbox URL as a comment
 Place the triggers right before and right after `fin init` call in your build script, e.g.
 
 ```bash
-build-notify pending
-ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
-if [[ $? == 0 ]]; then build-notify success; else build-notify failure; fi
+build-notify pending 
+ssh docker-host "cd $REMOTE_BUILD_DIR && fin init" || ( build-notify failure && exit 1 )
+build-notify success
 ```
 
 To enable posting sandbox URLs in comments on pull requests, do `export PR_COMMENT=1` prior to calling `build-notify`
