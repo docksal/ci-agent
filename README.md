@@ -43,30 +43,30 @@ URLs to sandbox environments can be found in the build logs and can also be publ
 
 ## Global Configuration
 
-The following required variables are usually configured at the organization level. This way, all project repos will 
+The following required variables are usually configured at the organization level. This way, all project repos will
 have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
 The address of the remote Docksal host, which will be hosting sandboxes. Configure one of the other.  
 If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
-If using `DOCKSAL_HOST_IP`, the agent will use `xip.io` for dynamic wildcard domain names for sandboxes. 
+If using `DOCKSAL_HOST_IP`, the agent will use `xip.io` for dynamic wildcard domain names for sandboxes.
 
 `DOCKSAL_HOST_SSH_KEY`
 
 A base64 encoded private SSH key used to access the remote Docksal host.  
-See [Access remote hosts via SSH](https://confluence.atlassian.com/bitbucket/access-remote-hosts-via-ssh-847452940.html) 
+See [Access remote hosts via SSH](https://confluence.atlassian.com/bitbucket/access-remote-hosts-via-ssh-847452940.html)
 tutorial for details.
 
 `CI_SSH_KEY`
 
-A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly 
+A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly
 on the agent.  
 E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
 
 `REMOTE_BUILD_BASE`
 
-The directory location on the remote server where the repositories should be cloned down to and built. 
+The directory location on the remote server where the repositories should be cloned down to and built.
 Defaults to `/home/ubuntu/builds`
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
@@ -85,10 +85,32 @@ Other features and integrations are usually configured at the repo level. See be
 
 ## Project configuration
 
-For Bitbucket Pipelines, copy the example [bitbucket-pipelines.yml](examples/bitbucket-pipelines/bitbucket-pipelines.yml) 
+For Bitbucket Pipelines, copy the example [bitbucket-pipelines.yml](examples/bitbucket-pipelines/bitbucket-pipelines.yml)
 file into the project repo and adjust as necessary.
 
 For CircleCI, copy the example [config.yml](examples/.circleci/config.yml) file into the project repo and adjust as necessary.
+
+For Gitlab-ci, copy the example [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml) file into the project repo and adjust as necessary.
+
+## Gitlab-ci specifics
+
+### Configuration
+
+Create the following secrets. This is possible per project or per group.
+
+- `DOCKSAL_HOST` Don't use `DOCKSAL_HOST_IP`, just define `DOCKSAL_HOST` as `10.11.12.13.xip.io`
+- `DOCKSAL_HOST_SSH_KEY`
+- `DOCKSAL_HOST_USER` optional, default = `ubuntu`
+- `REMOTE_BUILD_BASE` optional, default = `/home/ubuntu/builds
+- `HTTP_USER` optional
+- `HTTP_PASS` optional
+
+### Gitlab features
+
+Sandbox URLs you can find in menu `CI/CD -> Environments` of your repositories. see [documentation](https://docs.gitlab.com/ce/ci/environments.html)  
+Build status is automatic registered in gitlab and shows on many pages.  
+[Artifacts](https://docs.gitlab.com/ce/user/project/pipelines/job_artifacts.html) are available in GitLab in menu `CI/CD -> Pipelines`.
+[Slack notifications](#feature-slack-notifications) should work, is not tested yet.
 
 ## Feature: Basic HTTP Auth
 
@@ -105,11 +127,11 @@ Set the following environment variables at the repo level:
 ## Feature: Build status notifications
 
 This integration allows the agent to post build status updates and sandbox URL via Github/Bitbucket build status API.  
-For CircleCI, it is also possible to enable posting the sandbox URL as a comment in pull requests. 
+For CircleCI, it is also possible to enable posting the sandbox URL as a comment in pull requests.
 
 ### Configuration
 
-`GITHUB_TOKEN` or `BITBUCKET_TOKEN` must be configured respectively (either globally or at the repo level). 
+`GITHUB_TOKEN` or `BITBUCKET_TOKEN` must be configured respectively (either globally or at the repo level).
 
 ### Usage
 
@@ -118,13 +140,12 @@ For CircleCI, it is also possible to enable posting the sandbox URL as a comment
 Place the triggers right before and right after `fin init` call in your build script, e.g.
 
 ```bash
-build-notify pending 
+build-notify pending
 ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
 if [[ $? == 0 ]]; then build-notify success; else build-notify failure; fi
 ```
 
 To enable posting sandbox URLs in comments on pull requests, do `export PR_COMMENT=1` prior to calling `build-notify`
-
 
 ## Feature: Slack notifications
 
@@ -135,7 +156,7 @@ It can be used for notification purposes when a build is started, completed, fai
 
 `SLACK_WEBHOOK_URL`
 
-The Incoming Webhook integration URL from Slack, 
+The Incoming Webhook integration URL from Slack,
 e.g. `SLACK_WEBHOOK_URL https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXxxXXXXxxXXXXxxXXXXxxXX`
 
 `SLACK_CHANNEL`
@@ -148,7 +169,7 @@ A public or private channel in Slack, e.g. `SLACK_CHANNEL #project-name-bots`
 slack 'message' ['#channel'] ['webhook_url']
 ```
 
-Channel and webhook url can be passed via environment variables. See above. 
+Channel and webhook url can be passed via environment variables. See above.
 
 ### Limitations
 
@@ -209,14 +230,14 @@ ARTIFACTS_BASE_URL = https://artifacts.example.com
 
 **Upload path**
 
-The upload path is unique for each commit and is derived as follows: 
+The upload path is unique for each commit and is derived as follows:
 
 ```bash
 ${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}
 ```
 
 In certain cases you may want to store build artifacts per branch instead of per commit.  
-To do this, override the `ARTIFACTS_BUCKET_PATH` variable before calling the `build-acp` command: 
+To do this, override the `ARTIFACTS_BUCKET_PATH` variable before calling the `build-acp` command:
 
 ```bash
 export ARTIFACTS_BUCKET_PATH="${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}"
@@ -225,20 +246,20 @@ build-acp my-artifacts/
 
 **Posting build artifact URLs to Bitbucket**
 
-If `BITBUCKET_TOKEN` is set, the URL to the artifacts will be posted back to Bitbucket via 
+If `BITBUCKET_TOKEN` is set, the URL to the artifacts will be posted back to Bitbucket via
 [Bitbucket Build Status API](https://blog.bitbucket.org/2015/11/18/introducing-the-build-status-api-for-bitbucket-cloud/).
 
 ### Security
 
-If a bucket does not exist, it will be created automatically (with no public access). Existing bucket access permissions 
+If a bucket does not exist, it will be created automatically (with no public access). Existing bucket access permissions
 are not automatically adjusted. It's up to you whether you want to keep them open or not.
 
-When artifacts are uploaded, the destination artifact folder in the bucket is set to be publicly accessible. 
-Anyone with the direct link will be able to access the artifacts, but will not be able to browse the list of all 
-available artifact folders in the bucket (so long as the bucket itself is set to be private). 
+When artifacts are uploaded, the destination artifact folder in the bucket is set to be publicly accessible.
+Anyone with the direct link will be able to access the artifacts, but will not be able to browse the list of all
+available artifact folders in the bucket (so long as the bucket itself is set to be private).
 
-The URL by default includes a git commit hash, which serves as an authentication token (the URL is impossible to guess). 
+The URL by default includes a git commit hash, which serves as an authentication token (the URL is impossible to guess).
 This provides a simple yet efficient level of security for artifacts.
 
-To add an additional level of security follow [this guide](https://medium.com/@lmakarov/serverless-password-protecting-a-static-website-in-an-aws-s3-bucket-bfaaa01b8666) 
+To add an additional level of security follow [this guide](https://medium.com/@lmakarov/serverless-password-protecting-a-static-website-in-an-aws-s3-bucket-bfaaa01b8666)
 to set up username/password access to S3 via CloudFront and Lambda@Edge.
