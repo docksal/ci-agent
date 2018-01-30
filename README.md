@@ -154,10 +154,18 @@ e.g. `SLACK_WEBHOOK_URL https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXx
 
 A public or private channel in Slack, e.g. `SLACK_CHANNEL #project-name-bots`
 
+`SLACK_USER`
+
+The username the message should post to Slack as. Defaults to `Docksal CI`
+
+`SLACK_ICON`
+
+The icon the message should use to accompany the message: Defaults to `:desktop_computer:`
+
 ### Usage
 
 ```bash
-slack 'message' ['#channel'] ['webhook_url']
+slack 'message' ['#channel'] ['webhook_url'] ['slack_user'] ['slack_icon']
 ```
 
 Channel and webhook url can be passed via environment variables. See above. 
