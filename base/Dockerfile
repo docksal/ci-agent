@@ -8,6 +8,7 @@ RUN apk add --update --no-cache \
 	openssh \
 	rsync \
 	sudo \
+	patch \
 	&& rm -rf /var/cache/apk/*
 
 ARG GLIBC=2.25-r0
