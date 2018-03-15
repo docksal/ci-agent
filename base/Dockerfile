@@ -1,4 +1,4 @@
-FROM alpine:3.6
+FROM alpine:3.7
 
 RUN apk add --update --no-cache \
 	bash \
@@ -11,7 +11,7 @@ RUN apk add --update --no-cache \
 	patch \
 	&& rm -rf /var/cache/apk/*
 
-ARG GLIBC=2.25-r0
+ARG GLIBC=2.27-r0
 RUN \
 	# Install glibc libraries needed for docker-compose
 	apk update && apk add --no-cache openssl ca-certificates && \
@@ -22,7 +22,7 @@ RUN \
 	ln -s /lib/libc.musl-x86_64.so.1 /usr/glibc-compat/lib
 
 ARG DOCKER_VERSION=17.09.1-ce
-ARG DOCKER_COMPOSE_VERSION=1.18.0
+ARG DOCKER_COMPOSE_VERSION=1.19.0
 RUN \
 	# Install docker cli
 	curl -sSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" && \
