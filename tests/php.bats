@@ -57,3 +57,18 @@ teardown() {
 	### Cleanup ###
 	make clean
 }
+
+@test "Check PHP modules" {
+	[[ $SKIP == 1 ]] && skip
+
+	### Setup ###
+	make start
+
+	# Check PHP modules
+	run bash -c "docker exec '${NAME}' php -m | diff tests/php-modules.txt -"
+	[[ ${status} == 0 ]]
+	unset output
+
+	### Cleanup ###
+	make clean
+}
