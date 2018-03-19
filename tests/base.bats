@@ -24,14 +24,17 @@ teardown() {
 	run make exec COMMAND="docker --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "Docker version"
+	unset output
 
 	run make exec COMMAND="docker-compose --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "docker-compose version"
+	unset output
 
 	run make exec COMMAND="mc --help"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "VERSION"
+	unset output
 
 	### Cleanup ###
 	make clean

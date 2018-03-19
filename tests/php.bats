@@ -19,6 +19,7 @@ teardown() {
 
 	run bats tests/base.bats
 	[[ "$status" == 0 ]]
+	unset output
 }
 
 @test "Check binaries" {
@@ -31,22 +32,27 @@ teardown() {
 	run make exec COMMAND="php --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "PHP"
+	unset output
 
 	run make exec COMMAND="composer --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "Composer version"
+	unset output
 
 	run make exec COMMAND="drush --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "Drush Version"
+	unset output
 
 	run make exec COMMAND="drupal --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "Drupal Console Launcher"
+	unset output
 
 	run make exec COMMAND="wp --version"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "WP-CLI"
+	unset output
 
 	### Cleanup ###
 	make clean
