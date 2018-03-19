@@ -21,7 +21,7 @@ RUN \
 	ln -s /lib/libz.so.1 /usr/glibc-compat/lib/ && \
 	ln -s /lib/libc.musl-x86_64.so.1 /usr/glibc-compat/lib
 
-ARG DOCKER_VERSION=17.09.1-ce
+ARG DOCKER_VERSION=17.09.0-ce
 ARG DOCKER_COMPOSE_VERSION=1.19.0
 RUN \
 	# Install docker cli
