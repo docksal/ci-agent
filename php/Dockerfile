@@ -8,6 +8,7 @@ RUN apk add --update --no-cache \
 		php7-ctype \
 		php7-curl \
 		php7-dom \
+		php7-gd \
 		php7-json \
 		php7-mbstring \
 		php7-openssl \
