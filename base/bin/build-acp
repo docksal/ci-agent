@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+# Build Artifact Copy (build-acp)
+# Copy build artifacts into S3
+#
+# Usage: build-acp <source>
+
+# Abort if anything failse
+set -e
+
+if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] || [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]] || [[ "${ARTIFACTS_BUCKET_NAME}" == "" ]]; then
+	echo "Cannot upload artifacts."
+	echo "Please make sure AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and ARTIFACTS_BUCKET_NAME environment variables are configured."
+	exit 1
+fi
+
+# Configure ARTIFACTS_BASE_URL, unless it has been already defined
+ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL:-"https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com"}
+# Configure ARTIFACTS_BUCKET_PATH, unless it has been already defined
+ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH:-"${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"}
+# Configure ARTIFACTS_URL, unless it has been already defined
+# By default expecting index.html as the default entry point into the bucket/path
+ARTIFACTS_URL=${ARTIFACTS_URL:-"${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/index.html"}
+
+# Sync source locally
+source=${1}
+# Sync destination on S3
+destination="s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
+# Allow specifying a subpath within the destination path
+[[ "${2}" != "" ]] && destination="${destination}/${2}"
+
+if [[ "${source}" == "" ]]; then
+	echo "No source provided."
+	echo "Configuration: "
+	echo "source=${source}"
+	echo "destination=${destination}"
+	echo "ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL}"
+	echo "ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH}"
+	echo "ARTIFACTS_URL=${ARTIFACTS_URL}"
+	exit
+fi
+
+# Initialize minio client (mc) configuration for S3
+# AWS API keys must be set in the build settings
+mc config host add s3 https://s3.amazonaws.com ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY}
+
+# Create bucket if it does not exist
+mc mb "s3/${ARTIFACTS_BUCKET_NAME}"
+# Upload artifact into the bucket
+# TODO: figure out how to skip timestemp checking. Maybe use aws-cli instead on the minio client?
+# Looks like mirror does not have any benefit here over cp. Files in build have newer timestamps and are always copied.
+mc mirror --force --remove ${source} ${destination}
+# Set read-only permissions on BUCKET_PATH
+# Access is possible only if BUCKET_PATH is known (parent bucket stays private => XML listing of bucket objects disabled)
+mc policy download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
+
+echo "Build artifacts upload completed:"
+echo "${ARTIFACTS_URL}"
+echo "Files:"
+mc ls ${destination}
+
+# Post artifacts to Bitbucket build status API
+if [[ "${BITBUCKETCI}" != "" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]]; then
+	echo "Posting artifacts URL to Bitbucket..."
+
+	BUILD_STATUS_URL="${ARTIFACTS_URL}"
+	PAYLOAD="{\"key\": \"artifacts\", \"state\": \"SUCCESSFUL\", \"name\": \"Build artifacts\", \"url\": \"${BUILD_STATUS_URL}\"}"
+	API_URL="https://api.bitbucket.org/2.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/commit/${GIT_COMMIT_HASH}/statuses/build"
+	
+	curl -sS --request POST "${API_URL}" \
+		--header "Content-Type: application/json" \
+		--user "${BITBUCKET_TOKEN}" \
+		--data "${PAYLOAD}"
+else
+	echo "This command only works in Bitbucket Pipelines"
+fi

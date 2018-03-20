@@ -1,40 +1,166 @@
 #!/usr/bin/env bash
 
-# This script configures the pipelines build agent.
+# Configures build environment variables
+# This file should be sources at the beginning of a build
+#
+# Usage source build-env
+
+set -e # Abort if anything fails
+#set -x # Echo commands
+
+# -------------------- Constants -------------------- #
 
 BRANCH_NAME_LENGTH_LIMIT=35
+DOCKER_HOST_TUNNEL=localhost:2374
+GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
+GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
+
+# -------------------- Functions -------------------- #
+
+# Initial build environment configuration
+build_env ()
+{
+	# Support for Bitbucket Pipelines
+	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
+		echo "Detected Bitbucket Pipelines build environment"
+		export BITBUCKETCI="true"
+		export GIT_REPO_SERVICE="bitbucket"
+		export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
+		export GIT_REPO_NAME="$BITBUCKET_REPO_SLUG"
+		export GIT_REPO_URL="git@bitbucket.org:$GIT_REPO_OWNER/$GIT_REPO_NAME.git"
+		export GIT_BRANCH_NAME="$BITBUCKET_BRANCH"
+		export GIT_COMMIT_HASH="$BITBUCKET_COMMIT"
+		# Bitbucket Pipelines does not work with PRs
+		#GIT_PR_NUMBER=?
+	fi
+
+	# Support for CircleCI 2.0
+	if [[ "$CIRCLECI" != "" ]]; then
+		echo "Detected CircleCI build environment"
+		export GIT_REPO_OWNER="$CIRCLE_PROJECT_USERNAME"
+		export GIT_REPO_NAME="$CIRCLE_PROJECT_REPONAME"
+		export GIT_REPO_URL="$CIRCLE_REPOSITORY_URL"
+		export GIT_BRANCH_NAME="$CIRCLE_BRANCH"
+		export GIT_COMMIT_HASH="$CIRCLE_SHA1"
+
+		if [[ $CIRCLE_REPOSITORY_URL == *"github.com"* ]]; then
+			export GIT_REPO_SERVICE="github"
+			# Figure out the pull request number
+			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
+			export GIT_PR_NUMBER="$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\/pull\///')"
+		fi
+		if [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.org"* ]]; then
+			export GIT_REPO_SERVICE="bitbucket"
+			# Figure out the pull request number
+			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
+			export GIT_PR_NUMBER="$(echo $CIRCLE_PULL_REQUEST | sed 's/.*\/pull-requests\///')"
+		fi
+	fi
+
+	# Support for GitLab 9.0+
+	if [[ "$GITLAB_CI" != "" ]]; then
+		echo "Detected GitLabCI build environment"
+		export GIT_REPO_SERVICE="gitlab"
+		export GIT_REPO_OWNER="$CI_PROJECT_NAMESPACE"
+		export GIT_REPO_NAME="$CI_PROJECT_NAME"
+		export GIT_REPO_URL="$CI_REPOSITORY_URL"
+		export GIT_BRANCH_NAME="$CI_COMMIT_REF_NAME"
+		export GIT_COMMIT_HASH="$CI_COMMIT_SHA"
+		export GIT_PR_NUMBER="$CI_MERGE_REQUEST_ID"
+	fi
+
+	# For debug purposes these variables can be set manually.
+	# If they are empty here, then we cannot proceed.
+	if [[ "$GIT_REPO_URL" == "" ]] || [[ "$GIT_BRANCH_NAME" == "" ]] || [[ "$GIT_COMMIT_HASH" == "" ]]; then
+		echo "Unsupported build environment! Quiting..."
+		exit 1
+	fi
+
+	# URL safe branch name
+	BRANCH_NAME_SAFE="$(echo -n "$GIT_BRANCH_NAME" | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
+	# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
+	if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
+		BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME_SAFE" | cut -c1-30)-$(echo -n "$BRANCH_NAME_SAFE" | md5sum | cut -c1-4)"
+	fi
+	export BRANCH_NAME_SAFE
+
+	# Trim repo name to 30 characters. If someone has a repo name longer than that, then no mercy for them.
+	export REPO_NAME_SAFE="${GIT_REPO_NAME:0:30}"
+	# Short version of GIT_COMMIT_HASH
+	export COMMIT_HASH_SHORT="${GIT_COMMIT_HASH:0:7}"
+}
+
+ssh_init ()
+{
+	(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
+	(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
+}
+
+git_env ()
+{
+	git config --global user.email "$GIT_USER_EMAIL"
+	git config --global user.name "$GIT_USER_NAME"
+}
+
+ssh_tunnel_init ()
+{
+	# Check if the tunnel is already active and return if so
+	ssh -O "check" docker-host >/dev/null 2>&1
+	[[ $? == 0 ]] && return 0
+
+	echo "Setting up a secure tunnel to the Docker Engine on $DOCKSAL_HOST..."
+	# Black magic! Remote docker.sock access over SSH tunnel
+	# Credits:
+	# https://docs.docker.com/docker-for-aws/deploy/#connecting-via-ssh
+	# https://gist.github.com/scy/6781836#gistcomment-1559506
+	ssh -fM -NL ${DOCKER_HOST_TUNNEL}:/var/run/docker.sock docker-host
+
+	echo "Querying Docker Engine..."
+	docker --host ${DOCKER_HOST_TUNNEL} version
+	return $?
+}
+
+sandbox_server_env ()
+{
+	export REMOTE_BUILD_BASE=${REMOTE_BUILD_BASE:-/home/ubuntu/builds}
+	export REMOTE_BUILD_DIR="${REMOTE_BUILD_BASE}/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+	export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+	export DOCKER_STACK_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+
+	# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with nip.io
+	export DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.nip.io}"
+	sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
+
+	# Use ubuntu as the user by default
+	export DOCKSAL_HOST_USER="${DOCKSAL_HOST_USER:-ubuntu}"
+	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
+
+	# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
+	# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
+	export DOCKSAL_DOMAIN="${DOCKSAL_DOMAIN:-$DOCKSAL_HOST}"
+	# NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
+	export DOMAIN="$BRANCH_NAME_SAFE.$REPO_NAME_SAFE.$DOCKSAL_DOMAIN"
+
+	# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
+	# Export local tunnel connection settings if it works
+	# Using full if form instead of the short one here, otherwise builds will fail, when the condition below is false
+	if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
+		ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
+	fi
+}
+
+# -------------------- Runtime -------------------- #
 
 echo "Configuring build settings..."
-# URL safe branch name
-BRANCH_NAME_SAFE="$(echo -n $BITBUCKET_BRANCH | sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}')"
-# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
-if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
-	BRANCH_NAME_SAFE="$(echo -n $BRANCH_NAME_SAFE | cut -c1-30)-$(echo -n $BRANCH_NAME_SAFE | md5sum | cut -c1-4)"
-fi
-
-# Trim repo slug to 30 characters. If someone has a repo name longer than that, then no mercy for them.
-export BITBUCKET_REPO_SLUG_SAFE="${BITBUCKET_REPO_SLUG:0:30}"
-export BRANCH_NAME_SAFE
-export REMOTE_BUILD_DIR="/home/ubuntu/builds/$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
-export COMPOSE_PROJECT_NAME="$BITBUCKET_REPO_SLUG_SAFE-$BRANCH_NAME_SAFE"
-
-# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with xip.io
-DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.xip.io}"
-
-# NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
-export DOMAIN="$BRANCH_NAME_SAFE.$BITBUCKET_REPO_SLUG_SAFE.$DOCKSAL_HOST"
+build_env
 
 echo "Configuring ssh access..."
-(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
-(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
-
-# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP)
-if [[ $DOCKSAL_HOST != "" ]]; then
-	sed -i "s/DOCKSAL_HOST/$DOCKSAL_HOST/g" $HOME/.ssh/config
-else
-	sed -i "s/DOCKSAL_HOST/$DOCKSAL_HOST_IP/g" $HOME/.ssh/config
-fi
+ssh_init
 
 # Configure git
-git config --global user.email "${CI_GIT_USER_EMAIL:-bitbucket-pipelines-agent@docksal.io}"
-git config --global user.name "${CI_GIT_USER_NAME:-Bitbucket Pipelines Agent}"
+echo "Configuring git settings..."
+git_env
+
+# Sandbox server settings
+echo "Configuring sandbox server settings..."
+sandbox_server_env

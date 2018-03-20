@@ -3,6 +3,10 @@
 MESSAGE="${1}"
 SLACK_CHANNEL="${SLACK_CHANNEL:-$2}"
 SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL:-$3}"
+SLACK_USER="${SLACK_USER:-$4}"
+SLACK_USER="${SLACK_USER:-Docksal CI}"
+SLACK_ICON="${SLACK_ICON:-$5}"
+SLACK_ICON="${SLACK_ICON:-:desktop_computer:}"
 
 if [[ "$MESSAGE" == "" ]] || [[ "$SLACK_CHANNEL" == "" ]] || [[ "$SLACK_WEBHOOK_URL" == "" ]]; then
 	echo "Usage: slack 'message' ['#channel'] ['webhook_url']"
@@ -12,4 +16,4 @@ if [[ "$MESSAGE" == "" ]] || [[ "$SLACK_CHANNEL" == "" ]] || [[ "$SLACK_WEBHOOK_
 	exit 1
 fi
 
-curl -X POST --data-urlencode "payload={'channel': '${SLACK_CHANNEL}', 'username': 'Bitbucket Pipelines', 'text': '${MESSAGE}', 'icon_emoji': ':bitbucket:'}" "${SLACK_WEBHOOK_URL}"
+curl -X POST --data-urlencode "payload={'channel': '${SLACK_CHANNEL}', 'username': '${SLACK_USER}', 'text': '${MESSAGE}', 'icon_emoji': '${SLACK_ICON}'}" "${SLACK_WEBHOOK_URL}"

@@ -1,0 +1,28 @@
+[PHP Modules]
+Core
+ctype
+curl
+date
+dom
+filter
+gd
+hash
+json
+libxml
+mbstring
+openssl
+pcre
+Phar
+readline
+Reflection
+SimpleXML
+SPL
+standard
+tokenizer
+xml
+xmlreader
+xmlwriter
+zlib
+
+[Zend Modules]
+

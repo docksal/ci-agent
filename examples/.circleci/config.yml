@@ -1,0 +1,28 @@
+version: 2
+
+jobs:
+  build:
+    working_directory: /home/agent/build
+    docker:
+      - image: docksal/ci-agent:edge-php
+    environment:
+       BASH_ENV: /home/agent/.bashrc  # Tell CircleCI where to read the shared build environment variables from
+    steps:
+      - checkout
+      - run:
+          name: Configure local build environment
+          command: |
+            touch $BASH_ENV
+            echo 'source build-env' >> $BASH_ENV
+      - run:
+          name: Sandbox provisioning
+          command: |
+            build-init
+            ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"
+
+workflows:
+  version: 2
+  default-workflow:
+    jobs:
+      - build:
+          context: org-global  # Load org level environment variables from CircleCI
