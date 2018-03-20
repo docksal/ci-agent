@@ -4,8 +4,8 @@ A thin agent used to provision Docksal Sandboxes on a remote Docker host.
 
 Supported CI providers:
 
-- Bitbucket Pipelines
-- CircleCI
+- Bitbucket Pipelines (with build status integration)
+- CircleCI (with build status integration)
 - GitLab
 
 This image(s) is part of the [Docksal](http://docksal.io) image library.
@@ -23,38 +23,37 @@ Use cases:
 - enhanced pull request review experience
 - demos
 
-URLs to sandbox environments can be found in the build logs and can also be published to a Slack channel.
+Build status updates (and sandbox URLs) can be posted to Github and Bitbucket via respective build status APIs.  
+URLs to sandbox environments can also be published to a Slack channel.  
 
 
 ## Image variants and versions
 
 ### Stable
 
-- `docksal/ci-agent:base` - basic (bash, curl, git, etc.), latest version
-- `docksal/ci-agent:php` - basic + php stack tools (composer, drush, drupal console, wp-cli, etc.), latest version
-- `docksal/ci-agent:1.0-base` - basic, specific stable version
-- `docksal/ci-agent:1.0-php` - php, specific stable version
+- `base` - basic (bash, curl, git, etc.), latest version
+- `php`, `latest` - basic + php stack tools (composer, drush, drupal console, wp-cli, etc.), latest version
+- `1.2-base` - basic, a specific stable version
+- `1.2-php` - php, a specific stable version
 
 ### Development
 
-- `docksal/ci-agent:edge-base` - base, latest development version
-- `docksal/ci-agent:edge-php`, php, latest development version
+- `edge-base` - base, latest development version
+- `edge-php`, php, latest development version
 
 
 ## Global Configuration
+
+### Required
 
 The following required variables are usually configured at the organization level. This way, all project repos will 
 have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
-The address of the remote Docksal host, which will be hosting sandboxes. Configure one of the other.  
+The address of the remote Docksal host, which is hosting sandboxes. Configure one of the other.  
 If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
-If using `DOCKSAL_HOST_IP`, the agent will use `xip.io` for dynamic wildcard domain names for sandboxes. 
-
-`DOCKSAL_HOST_USER`
-
-The user's name that should have access to the remote Docksal host. Defaults to `ubuntu`.
+If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard domain names for sandboxes. 
 
 `DOCKSAL_HOST_SSH_KEY`
 
@@ -67,6 +66,18 @@ tutorial for details.
 A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly 
 on the agent.
 E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
+
+
+### Optional
+
+`DOCKSAL_DOMAIN`
+
+Can be used to set the base URL for sandbox builds (defaults to `DOCKSAL_HOST` if not set), individually from `DOCKSAL_HOST`.  
+This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is different from the `DOCKSAL_HOST`)
+
+`DOCKSAL_HOST_USER`
+
+The user's name that should have access to the remote Docksal host. Defaults to `ubuntu`.
 
 `REMOTE_BUILD_BASE`
 
@@ -92,6 +103,12 @@ The user's email to perform Git operations as. Defaults to `ci@docksal.io`
 
 The user's name to perform Git operations as. Defaults to `Docksal CI`
 
+`DOCKSAL_HOST_TUNNEL`
+
+If not empty, `localhost:2374` in the agent is mapped to `docker.sock` on the remote `DOCKSAL_HOST` via a secure SSH tunnel.  
+The agent can then run `docker` commands against the remote `DOCKSAL_HOST`.
+
+
 Other features and integrations are usually configured at the repo level. See below.
 
 
@@ -101,6 +118,20 @@ For Bitbucket Pipelines, copy the example [bitbucket-pipelines.yml](examples/bit
 file into the project repo and adjust as necessary.
 
 For CircleCI, copy the example [config.yml](examples/.circleci/config.yml) file into the project repo and adjust as necessary.
+
+## Build environment variables
+
+The following environment variables are available to build scripts.  
+They are derived from respective Bitbucket Pipelines, Circle CI and GitLab CI build variables. 
+
+- `GIT_REPO_OWNER` - git repo machine owner/slug name
+- `GIT_REPO_NAME` - git repo machine name
+- `GIT_REPO_URL` - git repo URL
+- `GIT_BRANCH_NAME` - git branch name
+- `GIT_COMMIT_HASH` - git commit hash
+- `GIT_PR_NUMBER` - git pull request / merge request number
+- `GIT_REPO_SERVICE` - `github`, `bitbucket` or `gitlab` (makes sense mostly for CircleCI)
+
 
 ## Feature: Basic HTTP Auth
 
