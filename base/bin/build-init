@@ -17,6 +17,15 @@ build-exec "echo VIRTUAL_HOST=$DOMAIN | tee -a .docksal/docksal-local.env"
 
 # Basic HTTP Auth
 if [[ "${HTTP_USER}" != "" ]] && [[ "${HTTP_PASS}" != "" ]]; then
+	echo "Configuring sandbox Basic HTTP Authentication..."
 	build-exec "echo APACHE_BASIC_AUTH_USER=$HTTP_USER | tee -a .docksal/docksal-local.env"
 	build-exec "echo APACHE_BASIC_AUTH_PASS=$HTTP_PASS | tee -a .docksal/docksal-local.env"
+fi
+
+# Pass build secrets to sandbox
+# A "secret" is any environment variable that starts with "SECRET_"
+secrets="$(env | grep 'SECRET_')"
+if [[ "$secrets" != "" ]]; then
+	echo "Passing build secrets to sandbox..."
+	build-exec "echo '$secrets' | tee -a .docksal/docksal-local.env >/dev/null"
 fi
