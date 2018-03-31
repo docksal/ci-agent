@@ -2,21 +2,21 @@
 
 # This script sets up a sandbox environment for the build on the remote docker host.
 
-echo "Setting up remote build environment..."
-ssh docker-host whoami
 # Cleanup
+echo "Setting up remote build environment..."
 ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f) || true"
 ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR; mkdir -p $REMOTE_BUILD_DIR"
+
 # Checkout sources
-ssh docker-host "cd $REMOTE_BUILD_DIR && git clone --branch="$GIT_BRANCH_NAME" --depth 50 $GIT_REPO_URL . && git reset --hard $GIT_COMMIT_HASH && ls -la"
+build-exec "git clone --branch="$GIT_BRANCH_NAME" --depth 50 $GIT_REPO_URL . && git reset --hard $GIT_COMMIT_HASH && ls -la"
+
 # Configure sandbox settings
 echo "Configuring sandbox settings..."
-ssh docker-host "cd $REMOTE_BUILD_DIR && echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME | tee -a .docksal/docksal-local.env"
-ssh docker-host "cd $REMOTE_BUILD_DIR && echo VIRTUAL_HOST=$DOMAIN | tee -a .docksal/docksal-local.env"
+build-exec "echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME | tee -a .docksal/docksal-local.env"
+build-exec "echo VIRTUAL_HOST=$DOMAIN | tee -a .docksal/docksal-local.env"
+
 # Basic HTTP Auth
 if [[ "${HTTP_USER}" != "" ]] && [[ "${HTTP_PASS}" != "" ]]; then
-	ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_USER=$HTTP_USER | tee -a .docksal/docksal-local.env"
-	ssh docker-host "cd $REMOTE_BUILD_DIR && echo APACHE_BASIC_AUTH_PASS=$HTTP_PASS | tee -a .docksal/docksal-local.env"
+	build-exec "echo APACHE_BASIC_AUTH_USER=$HTTP_USER | tee -a .docksal/docksal-local.env"
+	build-exec "echo APACHE_BASIC_AUTH_PASS=$HTTP_PASS | tee -a .docksal/docksal-local.env"
 fi
-#echo "Launching fin init..."
-#ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"

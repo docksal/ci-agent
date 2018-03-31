@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# Simple wrapper to run commands inside the remote build directory on the sandbox server
+
+ssh docker-host "cd $REMOTE_BUILD_DIR && ($@)"
