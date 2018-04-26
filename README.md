@@ -81,7 +81,7 @@ The user's name that should have access to the remote Docksal host. Defaults to 
 
 `REMOTE_BUILD_BASE`
 
-The directory location on the remote server where the repositories should be cloned down to and built. 
+The default directory location on the remote server where the repositories should be cloned down to and built. 
 Defaults to `/home/ubuntu/builds`
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
@@ -110,6 +110,12 @@ The agent can then run `docker` commands against the remote `DOCKSAL_HOST`.
 
 
 Other features and integrations are usually configured at the repo level. See below.
+
+### Runtime variables
+
+`REMOTE_BUILD_DIR`
+
+The directory location on the remote server where current project build will happen. Defaults to `"${REMOTE_BUILD_BASE}/${REPO_NAME_SAFE}-${BRANCH_NAME_SAFE}"`
 
 
 ## Project configuration
