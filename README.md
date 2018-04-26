@@ -115,7 +115,11 @@ Other features and integrations are usually configured at the repo level. See be
 
 `REMOTE_BUILD_DIR`
 
-The directory location on the remote server where current project build will happen. Defaults to `"${REMOTE_BUILD_BASE}/${REPO_NAME_SAFE}-${BRANCH_NAME_SAFE}"`
+The directory location on the remote server where current build will happen. Defaults to:
+
+```
+${REMOTE_BUILD_BASE}/${REPO_NAME_SAFE}-${BRANCH_NAME_SAFE}
+```
 
 
 ## Project configuration
