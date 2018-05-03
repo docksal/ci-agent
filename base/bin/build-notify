@@ -27,7 +27,7 @@ export PR_COMMENT=${PR_COMMENT:-0}  # PR comment notifications disabled by defau
 github_status_api ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "github" ]] && return
-	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Warning: GITHUB_TOKEN not set" && return
+	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Set GITHUB_TOKEN to enable build status notifications" && return
 
 	local context="$1"
 	local state="$2"
@@ -62,7 +62,7 @@ github_status_api ()
 bitbucket_status_api ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "bitbucket" ]] && return
-	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Warning: BITBUCKET_TOKEN not set" && return
+	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Set BITBUCKET_TOKEN to enable build status notifications" && return
 
 	local context="$1"
 	local state="$2"
@@ -89,7 +89,7 @@ github_pr_comment ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "github" ]] && return
 	[[ "${GIT_PR_NUMBER}" == "" ]] && return
-	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Warning: GITHUB_TOKEN not set" && return
+	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Set GITHUB_TOKEN to enable build status notifications" && return
 
 	local comment="$1"
 
@@ -113,7 +113,7 @@ bitbucket_pr_comment ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "bitbucket" ]] && return
 	[[ "${GIT_PR_NUMBER}" == "" ]] && return
-	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Warning: BITBUCKET_TOKEN not set" && return
+	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Set BITBUCKET_TOKEN to enable build status notifications" && return
 
 	local comment="$1"
 
