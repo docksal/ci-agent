@@ -5,7 +5,7 @@ jobs:
     # Override CIRCLE_WORKING_DIRECTORY (set to ~/project by default)
     working_directory: /home/agent/build
     docker:
-      - image: docksal/ci-agent:edge-php
+      - image: docksal/ci-agent:php
     steps:
       # Code checkout in the build agent
       - checkout

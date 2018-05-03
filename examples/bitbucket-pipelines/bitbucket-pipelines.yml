@@ -1,4 +1,4 @@
-image: docksal/ci-agent:edge-php
+image: docksal/ci-agent:php
 
 pipelines:
   default:
