@@ -21,7 +21,8 @@ GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
 # Print messages only when debugging in ON
 echo-debug ()
 {
-	[[ "$DEBUG" != 0 ]] && echo "$@"
+	# Make sure this is wrapped in an "if" statement or it will through "exit 1" on "false" and fail the script
+	if [[ "$DEBUG" != 0 ]]; then echo "$@"; fi
 }
 
 # Initial build environment configuration
