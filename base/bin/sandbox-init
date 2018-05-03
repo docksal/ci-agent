@@ -2,10 +2,10 @@
 
 # This script initializes a sandbox environment using the default settings
 
-# Initialize the codebase and settings on the sandbox server
+echo "Initializing codebase and settings on the sandbox server..."
 build-init
 [[ $? == 0 ]] && build-notify pending || build-notify failure
 
-# Initialize the sandbox by running fin init on the sandbox server
+echo "Initializing sandbox via 'fin init'..."
 build-exec "fin init"
 [[ $? == 0 ]] && build-notify success || build-notify failure

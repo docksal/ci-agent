@@ -10,6 +10,7 @@ set -e # Abort if anything fails
 
 # -------------------- Constants -------------------- #
 
+DEBUG=${DEBUG:-0}  # `DEBUG=1 build-env` to run with debugging turned ON
 BRANCH_NAME_LENGTH_LIMIT=35
 DOCKER_HOST_TUNNEL=localhost:2374
 GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
@@ -17,12 +18,18 @@ GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
 
 # -------------------- Functions -------------------- #
 
+# Print messages only when debugging in ON
+echo-debug ()
+{
+	[[ "$DEBUG" != 0 ]] && echo "$@"
+}
+
 # Initial build environment configuration
 build_env ()
 {
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
-		echo "Detected Bitbucket Pipelines build environment"
+		echo-debug "Detected Bitbucket Pipelines build environment"
 		export BITBUCKETCI="true"
 		export GIT_REPO_SERVICE="bitbucket"
 		export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
@@ -36,7 +43,7 @@ build_env ()
 
 	# Support for CircleCI 2.0
 	if [[ "$CIRCLECI" != "" ]]; then
-		echo "Detected CircleCI build environment"
+		echo-debug "Detected CircleCI build environment"
 		export GIT_REPO_OWNER="$CIRCLE_PROJECT_USERNAME"
 		export GIT_REPO_NAME="$CIRCLE_PROJECT_REPONAME"
 		export GIT_REPO_URL="$CIRCLE_REPOSITORY_URL"
@@ -59,7 +66,7 @@ build_env ()
 
 	# Support for GitLab 9.0+
 	if [[ "$GITLAB_CI" != "" ]]; then
-		echo "Detected GitLabCI build environment"
+		echo-debug "Detected GitLabCI build environment"
 		export GIT_REPO_SERVICE="gitlab"
 		export GIT_REPO_OWNER="$CI_PROJECT_NAMESPACE"
 		export GIT_REPO_NAME="$CI_PROJECT_NAME"
@@ -151,16 +158,16 @@ sandbox_server_env ()
 
 # -------------------- Runtime -------------------- #
 
-echo "Configuring build settings..."
+echo-debug "Configuring build settings..."
 build_env
 
-echo "Configuring ssh access..."
+echo-debug "Configuring ssh access..."
 ssh_init
 
 # Configure git
-echo "Configuring git settings..."
+echo-debug "Configuring git settings..."
 git_env
 
 # Sandbox server settings
-echo "Configuring sandbox server settings..."
+echo-debug "Configuring sandbox server settings..."
 sandbox_server_env
