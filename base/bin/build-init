@@ -4,8 +4,10 @@
 
 # Cleanup
 echo "Setting up remote build environment..."
-ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f) || true"
-ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR; mkdir -p $REMOTE_BUILD_DIR"
+ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f 2>/dev/null) || true"
+ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR 2>/dev/null; mkdir -p $REMOTE_BUILD_DIR"
+
+# Note: build-exec = ssh docker-host "cd $REMOTE_BUILD_DIR && ($@)"
 
 # Checkout sources
 build-exec "git clone --branch="$GIT_BRANCH_NAME" --depth 50 $GIT_REPO_URL . && git reset --hard $GIT_COMMIT_HASH && ls -la"
