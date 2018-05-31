@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# This script initializes a sandbox environment using the default settings
+
+echo "Initializing codebase and settings on the sandbox server..."
+build-init
+[[ $? == 0 ]] && build-notify pending || build-notify failure
+
+echo "Initializing sandbox via 'fin init'..."
+build-exec "fin init"
+[[ $? == 0 ]] && build-notify success || build-notify failure

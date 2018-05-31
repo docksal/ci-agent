@@ -5,6 +5,8 @@
 
 #-------------------------- SETTINGS ----------------------------
 
+DEBUG=${DEBUG:-0}  # `DEBUG=1 build-notify` to run with debugging turned ON
+
 export CONTEXT="ci/docksal"  # Context for notifications
 export URL="http://${DOMAIN}"  # Sandbox URL
 export STATUS_API=${STATUS_API:-1}  # Status API notifications enabled by default
@@ -25,7 +27,7 @@ export PR_COMMENT=${PR_COMMENT:-0}  # PR comment notifications disabled by defau
 github_status_api ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "github" ]] && return
-	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Warning: GITHUB_TOKEN not set" && return
+	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Set GITHUB_TOKEN to enable build status notifications" && return
 
 	local context="$1"
 	local state="$2"
@@ -37,11 +39,14 @@ github_status_api ()
 	PAYLOAD="{\"state\": \"${state}\",\"target_url\": \"${url}\",\"description\": \"${description}\",\"context\": \"${context}\"}"
 	API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/statuses/${GIT_COMMIT_HASH}"
 
-	curl -sS --request POST "${API_URL}" \
+	output=$(curl -sS --request POST "${API_URL}" \
 		--header "Content-Type: application/json" \
 		--header "Accept: application/vnd.github.v3.full+json" \
 		--header "Authorization: token ${GITHUB_TOKEN}" \
-		--data "${PAYLOAD}"
+		--data "${PAYLOAD}")
+
+	# Print curl output in debug mode
+	if [[ "$DEBUG" != 0 ]]; then echo "$output"; fi
 }
 
 # Calls Bitbucket Pipelines status API (commit/branch level status updates)
@@ -57,7 +62,7 @@ github_status_api ()
 bitbucket_status_api ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "bitbucket" ]] && return
-	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Warning: BITBUCKET_TOKEN not set" && return
+	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Set BITBUCKET_TOKEN to enable build status notifications" && return
 
 	local context="$1"
 	local state="$2"
@@ -69,10 +74,13 @@ bitbucket_status_api ()
 	PAYLOAD="{\"key\": \"${context}\", \"state\": \"${state}\", \"description\": \"${description}\", \"url\": \"${url}\"}"
 	API_URL="https://api.bitbucket.org/2.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/commit/${GIT_COMMIT_HASH}/statuses/build"
 
-	curl -sS --request POST "${API_URL}" \
+	output=$(curl -sS --request POST "${API_URL}" \
 		--header "Content-Type: application/json" \
 		--user "${BITBUCKET_TOKEN}" \
-		--data "${PAYLOAD}"
+		--data "${PAYLOAD}")
+
+	# Print curl output in debug mode
+	if [[ "$DEBUG" != 0 ]]; then echo "$output"; fi
 }
 
 # Posts a comment to a pull request in Github
@@ -81,7 +89,7 @@ github_pr_comment ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "github" ]] && return
 	[[ "${GIT_PR_NUMBER}" == "" ]] && return
-	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Warning: GITHUB_TOKEN not set" && return
+	[[ "${GITHUB_TOKEN}" == "" ]] && echo "Set GITHUB_TOKEN to enable build status notifications" && return
 
 	local comment="$1"
 
@@ -89,11 +97,14 @@ github_pr_comment ()
 	PAYLOAD="{\"body\": \"${comment}\"}"
 	API_URL="https://api.github.com/repos/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/issues/${GIT_PR_NUMBER}/comments"
 
-	curl -sS --request POST "${API_URL}" \
+	output=$(curl -sS --request POST "${API_URL}" \
 		--header "Content-Type: application/json" \
 		--header "Accept: application/vnd.github.v3.full+json" \
 		--header "Authorization: token ${GITHUB_TOKEN}" \
-		--data "${PAYLOAD}"
+		--data "${PAYLOAD}")
+
+	# Print curl output in debug mode
+	if [[ "$DEBUG" != 0 ]]; then echo "$output"; fi
 }
 
 # Posts a comment to a pull request in Bitbucket
@@ -102,7 +113,7 @@ bitbucket_pr_comment ()
 {
 	[[ "${GIT_REPO_SERVICE}" != "bitbucket" ]] && return
 	[[ "${GIT_PR_NUMBER}" == "" ]] && return
-	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Warning: BITBUCKET_TOKEN not set" && return
+	[[ "${BITBUCKET_TOKEN}" == "" ]] && echo "Set BITBUCKET_TOKEN to enable build status notifications" && return
 
 	local comment="$1"
 
@@ -111,9 +122,12 @@ bitbucket_pr_comment ()
 	# Posting comments to PRs is only available in BB API 1.0
 	API_URL="https://api.bitbucket.org/1.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/pullrequests/${GIT_PR_NUMBER}/comments"
 
-	curl -sS --request POST "${API_URL}" \
+	output=$(curl -sS --request POST "${API_URL}" \
 		--user "${BITBUCKET_TOKEN}" \
-		--data "${PAYLOAD}"
+		--data "${PAYLOAD}")
+
+	# Print curl output in debug mode
+	if [[ "$DEBUG" != 0 ]]; then echo "$output"; fi
 }
 
 notify_pending ()

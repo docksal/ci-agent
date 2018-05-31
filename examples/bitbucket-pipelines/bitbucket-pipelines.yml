@@ -1,4 +1,4 @@
-image: docksal/ci-agent:edge-php
+image: docksal/ci-agent:php
 
 pipelines:
   default:
@@ -7,5 +7,6 @@ pipelines:
           - source build-env  # Initialize the agent configuration
           - build-init  # Initialize the remote sandbox environment
           - slack "Started sandbox build for branch *${BITBUCKET_BRANCH}*"  # post to Slack
-          - ssh docker-host "cd $REMOTE_BUILD_DIR && fin init"  # Run fin init on the remote docker host to provision a sandbox
+          - build-exec "fin init"  # Run fin init on the remote docker host to provision a sandbox
+          - build-exec "cd docroot && fin drush st"  # Run other commands on the sandbox server
           - slack "Completed sandbox build for branch *${BITBUCKET_BRANCH}*:\n<http://${DOMAIN}|http://${DOMAIN}>"

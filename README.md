@@ -81,7 +81,7 @@ The user's name that should have access to the remote Docksal host. Defaults to 
 
 `REMOTE_BUILD_BASE`
 
-The directory location on the remote server where the repositories should be cloned down to and built. 
+The default directory location on the remote server where the repositories should be cloned down to and built. 
 Defaults to `/home/ubuntu/builds`
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
@@ -114,15 +114,56 @@ Other features and integrations are usually configured at the repo level. See be
 
 ## Project configuration
 
-For Bitbucket Pipelines, copy the example [bitbucket-pipelines.yml](examples/bitbucket-pipelines/bitbucket-pipelines.yml) 
-file into the project repo and adjust as necessary.
+### Bitbucket Pipelines
 
-For CircleCI, copy the example [config.yml](examples/.circleci/config.yml) file into the project repo and adjust as necessary.
+Here's the most basic configuration for Bitbucket Pipelines. Save it into `bitbucket-pipelines.yml` in your project repo.
+
+```yaml
+image: docksal/ci-agent:php
+
+pipelines:
+  default:
+    - step:
+        script:
+          - source build-env && sandbox-init
+```
+
+For a more advanced example see [bitbucket-pipelines.yml](examples/bitbucket-pipelines/bitbucket-pipelines.yml).
+
+### CircleCI
+
+Here's the most basic configuration for CircleCI. Save it into `.circleci/config.yml` in your project repo.
+
+```yaml
+version: 2
+
+jobs:
+  build:
+    working_directory: /home/agent/build
+    docker:
+      - image: docksal/ci-agent:php
+    steps:
+      - checkout
+      - run: source build-env && sandbox-init
+```
+
+For a more advanced example see [config.yml](examples/.circleci/config.yml).
+
+
+## Build commands
+
+For a complete list of built-in commands see [base/bin](base/bin).
+
+- `build-env` - configures build settings on the agent. Usage: `source build-env` (or `DEBUG=1 source build-env`)
+- `build-init`- initializes the sandbox codebase and settings on the sandbox server. Usage: `build-init`
+- `build-exec` - executes a shell command within the build directory on the sandbox server. Usage: `build-init pwd`
+- `build-notify` - see "Build status notifications" docs below
+- `sandbox-init` - a convenient shortcut to provision a basic sandbox. See [sandbox-init](base/bin/sandbox-init) 
+
 
 ## Build environment variables
 
-The following environment variables are available to build scripts.  
-They are derived from respective Bitbucket Pipelines, Circle CI and GitLab CI build variables. 
+The following variables are derived from the respective Bitbucket Pipelines, Circle CI and GitLab CI build variables. 
 
 - `GIT_REPO_OWNER` - git repo machine owner/slug name
 - `GIT_REPO_NAME` - git repo machine name
@@ -131,6 +172,14 @@ They are derived from respective Bitbucket Pipelines, Circle CI and GitLab CI bu
 - `GIT_COMMIT_HASH` - git commit hash
 - `GIT_PR_NUMBER` - git pull request / merge request number
 - `GIT_REPO_SERVICE` - `github`, `bitbucket` or `gitlab` (makes sense mostly for CircleCI)
+
+`REMOTE_BUILD_DIR`
+
+The directory location on the remote server where current build will happen. Defaults to:
+
+```
+${REMOTE_BUILD_BASE}/${REPO_NAME_SAFE}-${BRANCH_NAME_SAFE}
+```
 
 
 ## Feature: Basic HTTP Auth
