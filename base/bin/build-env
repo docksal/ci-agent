@@ -11,10 +11,16 @@ set -e # Abort if anything fails
 # -------------------- Constants -------------------- #
 
 DEBUG=${DEBUG:-0}  # `DEBUG=1 build-env` to run with debugging turned ON
-BRANCH_NAME_LENGTH_LIMIT=35
 DOCKER_HOST_TUNNEL=localhost:2374
 GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
 GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
+
+# These are used to generate the sandbox domain name (branch.project.example.com)
+# There is a limit of 63 characters for any part of the domain name.
+# With wildcard certs, DOMAIN_MODE="flat" should be used (branch-project.example.com) and the limit can be easily hit.
+# Keep these to 50 combined to leave space for sub-sub-domains (e.g. service-branch-project.example.com).
+BRANCH_NAME_LENGTH_LIMIT=30
+REPO_NAME_LENGTH_LIMIT=20
 
 # -------------------- Functions -------------------- #
 
@@ -94,14 +100,14 @@ build_env ()
 
 	# URL safe branch name
 	BRANCH_NAME_SAFE="$(safe_string ${GIT_BRANCH_NAME})"
-	# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique
+	# Trim the branch name if longer than BRANCH_NAME_LENGTH_LIMIT and append the md5sum to keep the branch name unique.
 	if (( "${#BRANCH_NAME_SAFE}" > "$BRANCH_NAME_LENGTH_LIMIT" )); then
-		BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME_SAFE" | cut -c1-30)-$(echo -n "$BRANCH_NAME_SAFE" | md5sum | cut -c1-4)"
+		BRANCH_NAME_SAFE="$(echo -n "$BRANCH_NAME_SAFE" | cut -c1-${BRANCH_NAME_LENGTH_LIMIT})-$(echo -n "$BRANCH_NAME_SAFE" | md5sum | cut -c1-3)"
 	fi
 	export BRANCH_NAME_SAFE
 
-	# Trim repo name to 30 characters. If someone has a repo name longer than that, then no mercy for them.
-	export REPO_NAME_SAFE="$(safe_string ${GIT_REPO_NAME:0:30})"
+	# Trim repo name if longer than REPO_NAME_LENGTH_LIMIT.
+	export REPO_NAME_SAFE="$(safe_string ${GIT_REPO_NAME:0:${REPO_NAME_LENGTH_LIMIT}})"
 	# Short version of GIT_COMMIT_HASH
 	export COMMIT_HASH_SHORT="${GIT_COMMIT_HASH:0:7}"
 }
@@ -155,8 +161,20 @@ sandbox_server_env ()
 	# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
 	# Make sure domain name is lowercase
 	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
-	# NOTE: The length of any one label in the domain name is limited to between 1 and 63 octets.
-	export DOMAIN="$BRANCH_NAME_SAFE.$REPO_NAME_SAFE.$DOCKSAL_DOMAIN"
+
+	# Set DOMAIN based on DOMAIN_MODE (either "multi" (default) or "flat")
+	# "DOMAIN_MODE=multi" (default) => branch.project.example.com
+	# "DOMAIN_MODE=flat" => branch-project.example.com
+	# Flat mode should be used in conjunction with a custom wildcard certificates, which can only cover a single level
+	# of sub-domains. I.e., a cert for "*.example.com", will only cover "sudomain.example.dom", but not
+	# "www.sudomain.example.com".
+	# NOTE: The length of any one label (subdomain) in the domain name is limited to between 1 and 63 octets (characters).
+	DOMAIN_MODE=${DOMAIN_MODE:=multi}
+	if [[ "$DOMAIN_MODE" == "flat" ]]; then
+		export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+	else
+		export DOMAIN="${BRANCH_NAME_SAFE}.${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+	fi
 
 	# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 	# Export local tunnel connection settings if it works
