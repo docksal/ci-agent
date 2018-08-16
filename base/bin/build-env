@@ -15,10 +15,9 @@ DOCKER_HOST_TUNNEL=localhost:2374
 GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
 GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
 
-# These are used to generate the sandbox domain name (branch.project.example.com)
+# These are used to generate the sandbox sub-domain (branch-project.example.com)
 # There is a limit of 63 characters for any part of the domain name.
-# With wildcard certs, DOMAIN_MODE="flat" should be used (branch-project.example.com) and the limit can be easily hit.
-# Keep these to 50 combined to leave space for sub-sub-domains (e.g. service-branch-project.example.com).
+# Limit these to 50 combined to leave some space for sub-sub-domains (e.g. service-branch-project.example.com).
 BRANCH_NAME_LENGTH_LIMIT=30
 REPO_NAME_LENGTH_LIMIT=20
 
@@ -162,19 +161,12 @@ sandbox_server_env ()
 	# Make sure domain name is lowercase
 	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
 
-	# Set DOMAIN based on DOMAIN_MODE (either "multi" (default) or "flat")
-	# "DOMAIN_MODE=multi" (default) => branch.project.example.com
-	# "DOMAIN_MODE=flat" => branch-project.example.com
-	# Flat mode should be used in conjunction with a custom wildcard certificates, which can only cover a single level
-	# of sub-domains. I.e., a cert for "*.example.com", will only cover "sudomain.example.dom", but not
-	# "www.sudomain.example.com".
-	# NOTE: The length of any one label (subdomain) in the domain name is limited to between 1 and 63 octets (characters).
-	DOMAIN_MODE=${DOMAIN_MODE:=multi}
-	if [[ "$DOMAIN_MODE" == "flat" ]]; then
-		export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
-	else
-		export DOMAIN="${BRANCH_NAME_SAFE}.${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
-	fi
+	# Use "flat" sub-domains (e.g. branch-project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
+	# This allows using a single wildcard cert for the entire sandbox server.
+	# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
+	# "www.sub-domain.example.com".
+	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
+	export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
 
 	# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 	# Export local tunnel connection settings if it works
