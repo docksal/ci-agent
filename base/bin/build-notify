@@ -8,7 +8,7 @@
 DEBUG=${DEBUG:-0}  # `DEBUG=1 build-notify` to run with debugging turned ON
 
 export CONTEXT="ci/docksal"  # Context for notifications
-export URL="http://${DOMAIN}"  # Sandbox URL
+export URL="https://${DOMAIN}"  # Sandbox URL
 export STATUS_API=${STATUS_API:-1}  # Status API notifications enabled by default
 export PR_COMMENT=${PR_COMMENT:-0}  # PR comment notifications disabled by default
 
@@ -150,7 +150,7 @@ notify_success ()
 	# Post comment to a pull request on success only
 	# Note: pull request builds are not supported by Bitbucket Pipelines
 	if [[ "$CIRCLECI" != "" ]] && [[ "$PR_COMMENT" != 0 ]]; then
-		comment="$description: http://${DOMAIN}"
+		comment="$description: ${URL}"
 		[[ "${GIT_REPO_SERVICE}" == "github" ]] && github_pr_comment "$comment"
 		[[ "${GIT_REPO_SERVICE}" == "bitbucket" ]] && bitbucket_pr_comment "$comment"
 	fi
