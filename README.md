@@ -84,6 +84,19 @@ The user's name that should have access to the remote Docksal host. Defaults to 
 The default directory location on the remote server where the repositories should be cloned down to and built. 
 Defaults to `/home/ubuntu/builds`
 
+`REMOTE_CODEBASE_METHOD`
+
+Pick between `git` (default) and `rsync` for the codebase initialization method on the sandbox server.
+
+The codebase is initialized on the sandbox server by the `build-init` command.
+
+`git` - code is checkout on the sandbox server via git. Server must have access to checkout from the repo. 
+Any build settings and necessary code manipulations must happen on the sandbox server using `build-exec` commands.
+
+`rsync` - code is rsynced to the sandbox server from the build agent. You can perform necessary code adjustments in the 
+build agent after running `build-env` and before running `build-init`. The latter one will push the code to the sandbox 
+environment.
+
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
 Used for access to post sandbox URLs via build status API as well as comments on pull requests.  
