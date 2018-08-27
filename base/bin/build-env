@@ -53,6 +53,8 @@ build_env ()
 		export GIT_COMMIT_HASH="$BITBUCKET_COMMIT"
 		# Bitbucket Pipelines does not work with PRs
 		#GIT_PR_NUMBER=?
+
+		export BUILD_DIR="$BITBUCKET_CLONE_DIR"
 	fi
 
 	# Support for CircleCI 2.0
@@ -76,6 +78,8 @@ build_env ()
 			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
 			export GIT_PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
 		fi
+
+		export BUILD_DIR="$CIRCLE_WORKING_DIRECTORY"
 	fi
 
 	# Support for GitLab 9.0+
@@ -88,6 +92,8 @@ build_env ()
 		export GIT_BRANCH_NAME="$CI_COMMIT_REF_NAME"
 		export GIT_COMMIT_HASH="$CI_COMMIT_SHA"
 		export GIT_PR_NUMBER="$CI_MERGE_REQUEST_ID"
+
+		export BUILD_DIR="$CI_PROJECT_DIR"
 	fi
 
 	# For debug purposes these variables can be set manually.
