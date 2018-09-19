@@ -1,6 +1,7 @@
 FROM alpine:3.8
 
-RUN apk add --update --no-cache \
+RUN set -xe; \
+	apk add --update --no-cache \
 		bash \
 		curl \
 		git \
