@@ -5,6 +5,8 @@
 #
 # Usage source build-env
 
+# Note: "set -e" MUST be restored back ("set +e") at the end of the script.
+# This script is sourced, so settings will propagate to all build steps.
 set -e # Abort if anything fails
 #set -x # Echo commands
 
@@ -197,3 +199,6 @@ git_env
 # Sandbox server settings
 echo-debug "Configuring sandbox server settings..."
 sandbox_server_env
+
+# IMPORTANT! Reverting settings set at the beginning on the script
+set +e
