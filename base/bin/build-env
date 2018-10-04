@@ -125,10 +125,16 @@ ssh_init ()
 	(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
 }
 
+# Configured preferred git settings
 git_env ()
 {
-	git config --global user.email "$GIT_USER_EMAIL"
-	git config --global user.name "$GIT_USER_NAME"
+	# Only set these if not already configured
+	if [[ "$(git config --global user.email)" == "" ]] && [[ "$GIT_USER_EMAIL" != "" ]]; then
+		git config --global user.email "$GIT_USER_EMAIL"
+	fi
+	if [[ "$(git config --global user.name)" == "" ]] && [[ "$GIT_USER_NAME" != "" ]]; then
+		git config --global user.email "$GIT_USER_NAME"
+	fi
 }
 
 ssh_tunnel_init ()
