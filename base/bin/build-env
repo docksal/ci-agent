@@ -117,46 +117,8 @@ build_env ()
 	export REPO_NAME_SAFE="$(safe_string ${GIT_REPO_NAME:0:${REPO_NAME_LENGTH_LIMIT}})"
 	# Short version of GIT_COMMIT_HASH
 	export COMMIT_HASH_SHORT="${GIT_COMMIT_HASH:0:7}"
-}
 
-ssh_init ()
-{
-	(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
-	(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
-}
-
-# Configured preferred git settings
-git_env ()
-{
-	# Only set these if not already configured
-	if [[ "$(git config --global user.email)" == "" ]] && [[ "$GIT_USER_EMAIL" != "" ]]; then
-		git config --global user.email "$GIT_USER_EMAIL"
-	fi
-	if [[ "$(git config --global user.name)" == "" ]] && [[ "$GIT_USER_NAME" != "" ]]; then
-		git config --global user.email "$GIT_USER_NAME"
-	fi
-}
-
-ssh_tunnel_init ()
-{
-	# Check if the tunnel is already active and return if so
-	ssh -O "check" docker-host >/dev/null 2>&1
-	[[ $? == 0 ]] && return 0
-
-	echo "Setting up a secure tunnel to the Docker Engine on $DOCKSAL_HOST..."
-	# Black magic! Remote docker.sock access over SSH tunnel
-	# Credits:
-	# https://docs.docker.com/docker-for-aws/deploy/#connecting-via-ssh
-	# https://gist.github.com/scy/6781836#gistcomment-1559506
-	ssh -fM -NL ${DOCKER_HOST_TUNNEL}:/var/run/docker.sock docker-host
-
-	echo "Querying Docker Engine..."
-	docker --host ${DOCKER_HOST_TUNNEL} version
-	return $?
-}
-
-sandbox_server_env ()
-{
+	# Sandbox settings
 	export REMOTE_BUILD_BASE=${REMOTE_BUILD_BASE:-/home/ubuntu/builds}
 	export REMOTE_BUILD_DIR="${REMOTE_BUILD_BASE}/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
 	export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
@@ -181,13 +143,43 @@ sandbox_server_env ()
 	# "www.sub-domain.example.com".
 	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
 	export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+}
 
-	# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
-	# Export local tunnel connection settings if it works
-	# Using full if form instead of the short one here, otherwise builds will fail, when the condition below is false
-	if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
-		ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
+ssh_init ()
+{
+	(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
+	(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
+}
+
+# Configured preferred git settings
+git_env ()
+{
+	# Only set these if not already configured
+	if [[ "$(git config --global user.email)" == "" ]] && [[ "$GIT_USER_EMAIL" != "" ]]; then
+		git config --global user.email "$GIT_USER_EMAIL"
 	fi
+	if [[ "$(git config --global user.name)" == "" ]] && [[ "$GIT_USER_NAME" != "" ]]; then
+		git config --global user.email "$GIT_USER_NAME"
+	fi
+}
+
+# Support running docker commands (locally to the agent) on the sandbox server (remote Docker engine)
+ssh_tunnel_init ()
+{
+	# Check if the tunnel is already active and return if so
+	ssh -O "check" docker-host >/dev/null 2>&1
+	[[ $? == 0 ]] && return 0
+
+	echo "Setting up a secure tunnel to the Docker Engine on $DOCKSAL_HOST..."
+	# Black magic! Remote docker.sock access over SSH tunnel
+	# Credits:
+	# https://docs.docker.com/docker-for-aws/deploy/#connecting-via-ssh
+	# https://gist.github.com/scy/6781836#gistcomment-1559506
+	ssh -fM -NL ${DOCKER_HOST_TUNNEL}:/var/run/docker.sock docker-host
+
+	echo "Querying Docker Engine..."
+	docker --host ${DOCKER_HOST_TUNNEL} version
+	return $?
 }
 
 # -------------------- Runtime -------------------- #
@@ -204,7 +196,12 @@ git_env
 
 # Sandbox server settings
 echo-debug "Configuring sandbox server settings..."
-sandbox_server_env
+# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
+# Export local tunnel connection settings if it works
+# Using full "if" form instead of the short one here, otherwise build fails, when the condition below is false
+if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
+	ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
+fi
 
 # IMPORTANT! Reverting settings set at the beginning on the script
 set +e
