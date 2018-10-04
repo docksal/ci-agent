@@ -156,8 +156,13 @@ jobs:
     docker:
       - image: docksal/ci-agent:php
     steps:
+      - run:
+          name: Configure agent environment
+          command: echo 'source build-env' >> $BASH_ENV
       - checkout
-      - run: source build-env && sandbox-init
+      - run:
+          name: Build sandbox
+          command: sandbox-init
 ```
 
 For a more advanced example see [config.yml](examples/.circleci/config.yml).

@@ -10,7 +10,8 @@ RUN set -xe; \
 		py2-pip \
 		rsync \
 		sudo \
-		patch; \
+		patch \
+	; \
 	rm -rf /var/cache/apk/*;
 
 ARG DOCKER_VERSION=18.06.0-ce
