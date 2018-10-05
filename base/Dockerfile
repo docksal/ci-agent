@@ -6,6 +6,7 @@ RUN set -xe; \
 		curl \
 		git \
 		jq \
+		make \
 		openssh \
 		py2-pip \
 		rsync \
