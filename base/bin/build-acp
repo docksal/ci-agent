@@ -60,7 +60,7 @@ echo "Files:"
 mc ls ${destination}
 
 # Post artifacts to Bitbucket build status API
-if [[ "${BITBUCKETCI}" != "" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]]; then
+if [[ "${BITBUCKET_CI}" != "" ]] && [[ "${BITBUCKET_TOKEN}" != "" ]]; then
 	echo "Posting artifacts URL to Bitbucket..."
 
 	BUILD_STATUS_URL="${ARTIFACTS_URL}"

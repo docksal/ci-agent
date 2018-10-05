@@ -46,7 +46,7 @@ build_env ()
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
 		echo-debug "Detected Bitbucket Pipelines build environment"
-		export BITBUCKETCI="true"
+		export BITBUCKET_CI="true"
 		export GIT_REPO_SERVICE="bitbucket"
 		export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
 		export GIT_REPO_NAME="$BITBUCKET_REPO_SLUG"
