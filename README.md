@@ -190,6 +190,7 @@ The following variables are derived from the respective Bitbucket Pipelines, Cir
 - `GIT_COMMIT_HASH` - git commit hash
 - `GIT_PR_NUMBER` - git pull request / merge request number
 - `GIT_REPO_SERVICE` - `github`, `bitbucket` or `gitlab` (makes sense mostly for CircleCI)
+- `BUILD_ID` - The unique identifier for a build
 - `BUILD_DIR` - The full path where the repository is cloned and where the job is run in the agent container
 
 `REMOTE_BUILD_DIR`
