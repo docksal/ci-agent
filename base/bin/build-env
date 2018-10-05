@@ -150,8 +150,19 @@ build_env ()
 # Since this scripts is supposed to be sourced for every run command, the keys will be reset back to our values.
 ssh_init ()
 {
-	(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa; chmod 0600 $HOME/.ssh/id_rsa)
-	(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa; chmod 0600 $HOME/.ssh/docksal_host_id_rsa)
+	[[ "$CI_SSH_KEY" != "" ]] &&
+	(
+		umask  077
+		echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa
+		chmod 0600 $HOME/.ssh/id_rsa
+	)
+
+	[[ "$DOCKSAL_HOST_SSH_KEY" != "" ]] &&
+	(
+		umask  077
+		echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa
+		chmod 0600 $HOME/.ssh/docksal_host_id_rsa
+	)
 }
 
 # Configured preferred git settings
