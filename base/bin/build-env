@@ -5,13 +5,10 @@
 #
 # Usage source build-env
 
-# Note: bash option set with "set" MUST be restored back at the end of the script.
-# This script is sourced, so these settings will propagate to all build steps.
-# Abort if anything fails
-set -eE  # same as: `set -o errexit -o errtrace`
-trap "echo 'Build environment initialization failed!'" ERR
-# Echo commands
-#set -x
+# IMPORTANT: This script is sourced in the build environment.
+# Any settings set here using set/trap/etc. will propagate to all build steps.
+# As such, it's best not to make any adjustment or make sure they are reverted at the end of the script.
+# E.g., instead of "set -e" use "exit 1" where necessary.
 
 # -------------------- Constants -------------------- #
 
@@ -220,6 +217,3 @@ echo-debug "Configuring sandbox server settings..."
 if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
 	ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
 fi
-
-# IMPORTANT! Reverting settings set at the beginning on the script
-set +eE
