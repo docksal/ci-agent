@@ -5,10 +5,13 @@
 #
 # Usage source build-env
 
-# Note: "set -e" MUST be restored back ("set +e") at the end of the script.
-# This script is sourced, so settings will propagate to all build steps.
-set -e # Abort if anything fails
-#set -x # Echo commands
+# Note: bash option set with "set" MUST be restored back at the end of the script.
+# This script is sourced, so these settings will propagate to all build steps.
+# Abort if anything fails
+set -eE  # same as: `set -o errexit -o errtrace`
+trap "echo 'Build environment initialization failed!'" ERR
+# Echo commands
+#set -x
 
 # -------------------- Constants -------------------- #
 
@@ -219,4 +222,4 @@ if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
 fi
 
 # IMPORTANT! Reverting settings set at the beginning on the script
-set +e
+set +eE
