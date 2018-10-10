@@ -57,16 +57,14 @@ If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard dom
 
 `DOCKSAL_HOST_SSH_KEY`
 
-A base64 encoded private SSH key used to access the remote Docksal host.  
-See [Access remote hosts via SSH](https://confluence.atlassian.com/bitbucket/access-remote-hosts-via-ssh-847452940.html) 
-tutorial for details.
+A base64 encoded private SSH key, used to access the remote Docksal host.
 
 `CI_SSH_KEY`
 
-A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly 
-on the agent.
-E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
+A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
+This key will be used to clone/push to repo, run commands over SSH on a remote deployment environment, etc.
 
+Note: `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key.
 
 ### Optional
 
