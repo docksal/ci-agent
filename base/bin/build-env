@@ -122,7 +122,9 @@ build_env ()
 	export COMMIT_HASH_SHORT="${GIT_COMMIT_HASH:0:7}"
 
 	# Sandbox settings
-	export REMOTE_BUILD_BASE=${REMOTE_BUILD_BASE:-/home/ubuntu/builds}
+	# Defaults for the sandbox user and builds directory: "build-agent" and "/home/build-agent/builds" respectively.
+	export DOCKSAL_HOST_USER="${DOCKSAL_HOST_USER:-build-agent}"
+	export REMOTE_BUILD_BASE=${REMOTE_BUILD_BASE:-/home/${DOCKSAL_HOST_USER}/builds}
 	export REMOTE_BUILD_DIR="${REMOTE_BUILD_BASE}/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
 	export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
 	export DOCKER_STACK_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
@@ -131,8 +133,7 @@ build_env ()
 	export DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.nip.io}"
 	sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
 
-	# Use ubuntu as the user by default
-	export DOCKSAL_HOST_USER="${DOCKSAL_HOST_USER:-ubuntu}"
+	# Set the sandbox user name in agent's SSH config
 	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
 
 	# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
@@ -166,7 +167,7 @@ ssh_init ()
 	fi
 }
 
-# Configured preferred git settings
+# Configure preferred git settings
 git_env ()
 {
 	# Only set these if not already configured
