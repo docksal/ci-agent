@@ -54,6 +54,11 @@ teardown() {
 	echo "$output" | grep "WP-CLI"
 	unset output
 
+	run make exec COMMAND="phpcs --version"
+	[[ "$status" == 0 ]]
+	echo "$output" | grep "PHP_CodeSniffer"
+	unset output
+
 	### Cleanup ###
 	make clean
 }

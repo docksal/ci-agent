@@ -3,7 +3,8 @@ FROM docksal/ci-agent:base
 # Switch to root to install some system-wide stuff
 USER root
 
-RUN apk add --update --no-cache \
+RUN set -xe; \
+	apk add --update --no-cache \
 		php7 \
 		php7-ctype \
 		php7-curl \
@@ -25,7 +26,7 @@ ENV COMPOSER_VERSION=1.6.3
 ENV DRUSH_VERSION 8.1.16
 ENV DRUPAL_CONSOLE_VERSION 1.7.0
 ENV WPCLI_VERSION 1.5.0
-RUN \
+RUN set -xe; \
 	# Composer
 	curl -sSL "https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer; \
 	# Drush 8 (default)
@@ -41,7 +42,7 @@ RUN \
 USER $AGENT_USER
 
 ENV PATH $PATH:$AGENT_HOME/.composer/vendor/bin
-RUN \
+RUN set -xe; \
 	# Add composer bin directory to PATH
 	echo "\n"'PATH="$PATH:$AGENT_HOME/.composer/vendor/bin"' >> $AGENT_HOME/.profile; \
 	# Drush modules

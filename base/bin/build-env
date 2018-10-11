@@ -5,8 +5,10 @@
 #
 # Usage source build-env
 
-set -e # Abort if anything fails
-#set -x # Echo commands
+# IMPORTANT: This script is sourced in the build environment.
+# Any settings set here using set/trap/etc. will propagate to all build steps.
+# As such, it's best not to make any adjustment or make sure they are reverted at the end of the script.
+# E.g., instead of "set -e" use "exit 1" where necessary.
 
 # -------------------- Constants -------------------- #
 
@@ -44,7 +46,7 @@ build_env ()
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
 		echo-debug "Detected Bitbucket Pipelines build environment"
-		export BITBUCKETCI="true"
+		export BITBUCKET_CI="true"
 		export GIT_REPO_SERVICE="bitbucket"
 		export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
 		export GIT_REPO_NAME="$BITBUCKET_REPO_SLUG"
@@ -54,6 +56,7 @@ build_env ()
 		# Bitbucket Pipelines does not work with PRs
 		#GIT_PR_NUMBER=?
 
+		export BUILD_ID="$BITBUCKET_BUILD_NUMBER"
 		export BUILD_DIR="$BITBUCKET_CLONE_DIR"
 	fi
 
@@ -79,6 +82,7 @@ build_env ()
 			export GIT_PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
 		fi
 
+		export BUILD_ID="$CIRCLE_BUILD_NUM"
 		export BUILD_DIR="$CIRCLE_WORKING_DIRECTORY"
 	fi
 
@@ -93,6 +97,7 @@ build_env ()
 		export GIT_COMMIT_HASH="$CI_COMMIT_SHA"
 		export GIT_PR_NUMBER="$CI_MERGE_REQUEST_ID"
 
+		export BUILD_ID="$CI_JOB_ID"
 		export BUILD_DIR="$CI_PROJECT_DIR"
 	fi
 
@@ -115,20 +120,66 @@ build_env ()
 	export REPO_NAME_SAFE="$(safe_string ${GIT_REPO_NAME:0:${REPO_NAME_LENGTH_LIMIT}})"
 	# Short version of GIT_COMMIT_HASH
 	export COMMIT_HASH_SHORT="${GIT_COMMIT_HASH:0:7}"
+
+	# Sandbox settings
+	# Defaults for the sandbox user and builds directory: "build-agent" and "/home/build-agent/builds" respectively.
+	export DOCKSAL_HOST_USER="${DOCKSAL_HOST_USER:-build-agent}"
+	export REMOTE_BUILD_BASE=${REMOTE_BUILD_BASE:-/home/${DOCKSAL_HOST_USER}/builds}
+	export REMOTE_BUILD_DIR="${REMOTE_BUILD_BASE}/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+	export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+	export DOCKER_STACK_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
+
+	# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with nip.io
+	export DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.nip.io}"
+	sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
+
+	# Set the sandbox user name in agent's SSH config
+	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
+
+	# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
+	# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
+	# Make sure domain name is lowercase
+	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
+
+	# Use "flat" sub-domains (e.g. branch-project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
+	# This allows using a single wildcard cert for the entire sandbox server.
+	# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
+	# "www.sub-domain.example.com".
+	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
+	export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
 }
 
+# Configure SSH keys
+# Note: CircleCI injects it's own key during checkout.
+# Since this scripts is supposed to be sourced for every run command, the keys will be reset back to our values.
 ssh_init ()
 {
-	(umask  077 ; echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa)
-	(umask  077 ; echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa)
+	if [[ "$CI_SSH_KEY" != "" ]]; then
+		umask  077
+		echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa
+		chmod 0600 $HOME/.ssh/id_rsa
+	fi
+
+	if [[ "$DOCKSAL_HOST_SSH_KEY" != "" ]]; then
+		umask  077
+		echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa
+		chmod 0600 $HOME/.ssh/docksal_host_id_rsa
+	fi
 }
 
+# Configure preferred git settings
 git_env ()
 {
-	git config --global user.email "$GIT_USER_EMAIL"
-	git config --global user.name "$GIT_USER_NAME"
+	# Only set these if not already configured
+	if [[ "$(git config --global user.email)" == "" ]] && [[ "$GIT_USER_EMAIL" != "" ]]; then
+		git config --global user.email "$GIT_USER_EMAIL"
+	fi
+	if [[ "$(git config --global user.name)" == "" ]] && [[ "$GIT_USER_NAME" != "" ]]; then
+		git config --global user.name "$GIT_USER_NAME"
+	fi
 }
 
+# Support running docker commands (locally to the agent) on the sandbox server (remote Docker engine)
 ssh_tunnel_init ()
 {
 	# Check if the tunnel is already active and return if so
@@ -147,41 +198,6 @@ ssh_tunnel_init ()
 	return $?
 }
 
-sandbox_server_env ()
-{
-	export REMOTE_BUILD_BASE=${REMOTE_BUILD_BASE:-/home/ubuntu/builds}
-	export REMOTE_BUILD_DIR="${REMOTE_BUILD_BASE}/$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
-	export COMPOSE_PROJECT_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
-	export DOCKER_STACK_NAME="$REPO_NAME_SAFE-$BRANCH_NAME_SAFE"
-
-	# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with nip.io
-	export DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.nip.io}"
-	sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
-
-	# Use ubuntu as the user by default
-	export DOCKSAL_HOST_USER="${DOCKSAL_HOST_USER:-ubuntu}"
-	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
-
-	# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
-	# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
-	# Make sure domain name is lowercase
-	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
-
-	# Use "flat" sub-domains (e.g. branch-project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
-	# This allows using a single wildcard cert for the entire sandbox server.
-	# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
-	# "www.sub-domain.example.com".
-	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
-	export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
-
-	# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
-	# Export local tunnel connection settings if it works
-	# Using full if form instead of the short one here, otherwise builds will fail, when the condition below is false
-	if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
-		ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
-	fi
-}
-
 # -------------------- Runtime -------------------- #
 
 echo-debug "Configuring build settings..."
@@ -196,4 +212,9 @@ git_env
 
 # Sandbox server settings
 echo-debug "Configuring sandbox server settings..."
-sandbox_server_env
+# Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
+# Export local tunnel connection settings if it works
+# Using full "if" form instead of the short one here, otherwise build fails, when the condition below is false
+if [[ "$DOCKSAL_HOST_TUNNEL" != "" ]]; then
+	ssh_tunnel_init && export DOCKER_HOST=${DOCKER_HOST_TUNNEL}
+fi

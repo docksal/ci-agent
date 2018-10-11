@@ -7,17 +7,17 @@ jobs:
     docker:
       - image: docksal/ci-agent:php
     steps:
-      # Code checkout in the build agent
-      - checkout
       # Inject build environment variables.
       # Each run statement runs in its own isolated shell (exported variables are not preserved).
       # $BASH_ENV can be used to pass environment variables between run statements.
       - run:
           name: Configure agent environment
           command: echo 'source build-env' > $BASH_ENV
+      # Code checkout in the build agent
+      - checkout
       # Launch a sandbox on the sandbox server
       - run:
-          name: Provision sandbox
+          name: Build sandbox
           command: sandbox-init
       # Run other commands
       - run:

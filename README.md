@@ -57,16 +57,14 @@ If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard dom
 
 `DOCKSAL_HOST_SSH_KEY`
 
-A base64 encoded private SSH key used to access the remote Docksal host.  
-See [Access remote hosts via SSH](https://confluence.atlassian.com/bitbucket/access-remote-hosts-via-ssh-847452940.html) 
-tutorial for details.
+A base64 encoded private SSH key, used to access the remote Docksal host.
 
 `CI_SSH_KEY`
 
-A secondary SSH key (base64 encoded as well), which can be used for deployments and other remote operations run directly 
-on the agent.
-E.g. cloning/pushing a repo, running commands over SSH on a remote deployment environment.
+A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
+This key will be used to clone/push to repo, run commands over SSH on a remote deployment environment, etc.
 
+Note: `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key.
 
 ### Optional
 
@@ -156,8 +154,13 @@ jobs:
     docker:
       - image: docksal/ci-agent:php
     steps:
+      - run:
+          name: Configure agent environment
+          command: echo 'source build-env' >> $BASH_ENV
       - checkout
-      - run: source build-env && sandbox-init
+      - run:
+          name: Build sandbox
+          command: sandbox-init
 ```
 
 For a more advanced example see [config.yml](examples/.circleci/config.yml).
@@ -185,6 +188,7 @@ The following variables are derived from the respective Bitbucket Pipelines, Cir
 - `GIT_COMMIT_HASH` - git commit hash
 - `GIT_PR_NUMBER` - git pull request / merge request number
 - `GIT_REPO_SERVICE` - `github`, `bitbucket` or `gitlab` (makes sense mostly for CircleCI)
+- `BUILD_ID` - The unique identifier for a build
 - `BUILD_DIR` - The full path where the repository is cloned and where the job is run in the agent container
 
 `REMOTE_BUILD_DIR`

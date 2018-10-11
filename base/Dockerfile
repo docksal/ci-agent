@@ -1,15 +1,18 @@
-FROM alpine:3.7
+FROM alpine:3.8
 
-RUN apk add --update --no-cache \
+RUN set -xe; \
+	apk add --update --no-cache \
 		bash \
 		curl \
 		git \
 		jq \
+		make \
 		openssh \
 		py2-pip \
 		rsync \
 		sudo \
-		patch; \
+		patch \
+	; \
 	rm -rf /var/cache/apk/*;
 
 ARG DOCKER_VERSION=18.06.0-ce
