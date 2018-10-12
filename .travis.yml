@@ -20,8 +20,8 @@ script:
 after_success: |
   # Push images to Docker Hub
   if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
-    echo scripts/push-image.sh base
-    echo scripts/push-image.sh php
+    scripts/push-image.sh base
+    scripts/push-image.sh php
   fi
 
 after_failure:
