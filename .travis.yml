@@ -8,7 +8,7 @@ env:
     - REPO=docksal/ci-agent
 
 install:
-  - curl -fsSL get.docksal.io | sh
+  - curl -fsSL get.docksal.io | bash
   - fin version
   - fin sysinfo
 
@@ -20,8 +20,8 @@ script:
 after_success: |
   # Push images to Docker Hub
   if [[ "${TRAVIS_PULL_REQUEST}" == "false" ]]; then
-    scripts/push-image.sh base
-    scripts/push-image.sh php
+    echo scripts/push-image.sh base
+    echo scripts/push-image.sh php
   fi
 
 after_failure:
