@@ -3,9 +3,9 @@
 # This script initializes a sandbox environment using the default settings
 
 echo "Initializing codebase and settings on the sandbox server..."
-build-init
-[[ $? == 0 ]] && build-notify pending || build-notify failure
+build-init; ret=$?
+[[ ${ret} == 0 ]] && build-notify pending || { build-notify failure; exit ${ret}; }
 
 echo "Initializing sandbox via 'fin init'..."
-build-exec "fin init"
-[[ $? == 0 ]] && build-notify success || build-notify failure
+build-exec "fin init"; ret=$?
+[[ ${ret} == 0 ]] && build-notify success || { build-notify failure; exit ${ret}; }
