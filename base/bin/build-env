@@ -43,6 +43,11 @@ safe_string ()
 # Initial build environment configuration
 build_env ()
 {
+	# Drop variables with "null" values
+	# This allows, at the project level, unsetting build variables set at the org level
+	empty_vars="$(env | grep '=null$' | cut -d = -f 1)"
+	while read -r i; do unset ${i}; done <<< "${empty_vars}"
+
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
 		echo-debug "Detected Bitbucket Pipelines build environment"
@@ -69,13 +74,13 @@ build_env ()
 		export GIT_BRANCH_NAME="$CIRCLE_BRANCH"
 		export GIT_COMMIT_HASH="$CIRCLE_SHA1"
 
-		if [[ $CIRCLE_REPOSITORY_URL == *"github.com"* ]]; then
+		if [[ "$CIRCLE_REPOSITORY_URL" == *"github.com"* ]]; then
 			export GIT_REPO_SERVICE="github"
 			# Figure out the pull request number
 			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
 			export GIT_PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
 		fi
-		if [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.org"* ]]; then
+		if [[ "$CIRCLE_REPOSITORY_URL" == *"bitbucket.org"* ]]; then
 			export GIT_REPO_SERVICE="bitbucket"
 			# Figure out the pull request number
 			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
