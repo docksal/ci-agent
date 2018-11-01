@@ -146,12 +146,12 @@ build_env ()
 	# Make sure domain name is lowercase
 	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
 
-	# Use "flat" sub-domains (e.g. branch-project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
+	# Use "flat" sub-domains (e.g. branch--project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
 	# This allows using a single wildcard cert for the entire sandbox server.
 	# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
 	# "www.sub-domain.example.com".
 	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
-	export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+	export DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
 }
 
 # Configure SSH keys
