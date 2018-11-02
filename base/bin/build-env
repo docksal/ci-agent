@@ -152,6 +152,9 @@ build_env ()
 	# "www.sub-domain.example.com".
 	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
 	export DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+
+	# Default to rsync for sandbox codebase initialization
+	export REMOTE_CODEBASE_METHOD="${REMOTE_CODEBASE_METHOD:-rsync}"
 }
 
 # Configure SSH keys

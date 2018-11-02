@@ -84,16 +84,16 @@ Defaults to `/home/ubuntu/builds`
 
 `REMOTE_CODEBASE_METHOD`
 
-Pick between `git` (default) and `rsync` for the codebase initialization method on the sandbox server.
+Pick between `git` and `rsync` (default) for the codebase initialization method on the sandbox server.
 
-The codebase is initialized on the sandbox server by the `build-init` command.
+The codebase is initialized on the sandbox server by the `sandbox-init` (or `build-init`) command.
 
 `git` - code is checkout on the sandbox server via git. Server must have access to checkout from the repo. 
 Any build settings and necessary code manipulations must happen on the sandbox server using `build-exec` commands.
 
-`rsync` - code is rsynced to the sandbox server from the build agent. You can perform necessary code adjustments in the 
-build agent after running `build-env` and before running `build-init`. The latter one will push the code to the sandbox 
-environment.
+`rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the 
+build agent after running `build-env` and before running `sandbox-init` (or `build-init`), which pushes the code to the 
+sandbox server.
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
