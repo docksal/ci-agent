@@ -7,8 +7,8 @@ set -e # Abort if anything fails
 
 # Cleanup
 echo "Setting up remote build environment..."
-ssh docker-host "(cd $REMOTE_BUILD_DIR && fin rm -f 2>/dev/null) || true"
-ssh docker-host "sudo rm -rf $REMOTE_BUILD_DIR 2>/dev/null; mkdir -p $REMOTE_BUILD_DIR"
+ssh docker-host "(cd ${REMOTE_BUILD_DIR} 2>/dev/null && fin rm -f 2>/dev/null) || true"
+ssh docker-host "sudo rm -rf ${REMOTE_BUILD_DIR} 2>/dev/null; mkdir -p ${REMOTE_BUILD_DIR}"
 
 # Note: build-exec = ssh docker-host "cd $REMOTE_BUILD_DIR && ($@)"
 
