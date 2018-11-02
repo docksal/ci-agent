@@ -59,14 +59,14 @@ If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard dom
 
 A base64 encoded private SSH key, used to access the remote Docksal host.
 
-`CI_SSH_KEY`
-
-A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
-This key will be used to clone/push to repo, run commands over SSH on a remote deployment environment, etc.
-
 Note: `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key.
 
 ### Optional
+
+`CI_SSH_KEY`
+
+A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
+This key will be used to clone/push to git, run commands over SSH on a remote deployment environment, etc.
 
 `DOCKSAL_DOMAIN`
 
