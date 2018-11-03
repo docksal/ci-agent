@@ -162,33 +162,37 @@ build_env ()
 # Since this scripts is supposed to be sourced for every run command, the keys will be reset back to our values.
 ssh_init ()
 {
+	mkdir -p $HOME/.ssh
+
 	# Default key used for all hosts
 	if [[ "$CI_SSH_KEY" != "" ]]; then
-		umask  077
 		echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa
 		chmod 0600 $HOME/.ssh/id_rsa
 	fi
 
 	# Docksal Sandbox server key
 	if [[ "$DOCKSAL_HOST_SSH_KEY" != "" ]]; then
-		umask  077
 		echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa
 		chmod 0600 $HOME/.ssh/docksal_host_id_rsa
 	fi
 
 	# Initialize ssh-agent and load the default key ($HOME/.ssh/id_rsa)
 	# Check whether ssh-agent is configured
-	ssh-add -l &>/dev/null
+	ssh-add -l &>/dev/null || ret=$?
 	# If ssh-agent is not configured, but config file exists, attempt to load agent settings from the file
-	[[ "$?" == 2 ]] && [[ -f ~/.ssh-agent ]] && eval "$(<~/.ssh-agent)" >/dev/null
-	# Check whether ssh-agent is configured again
-	ssh-add -l &>/dev/null
-	# If the existing config was invalid, start a new agent, write new config and load keys into the new ssh-agent
-	if [[ "$?" != 0 ]]; then
-		(umask 066; ssh-agent > ~/.ssh-agent)
-		eval "$(<~/.ssh-agent)" >/dev/null
-		ssh-add >/dev/null
+	if [[ "${ret}" == 2 ]] && [[ -f $HOME/.ssh/agent ]]; then
+		eval "$(<$HOME/.ssh/agent)" >/dev/null
 	fi
+	# Check whether ssh-agent is configured again
+	ssh-add -l &>/dev/null || ret=$?
+	# If the existing config was invalid, start a new agent and write new config
+	if [[ "${ret}" == 2 ]]; then
+		ssh-agent > $HOME/.ssh/agent
+		chmod 0600 $HOME/.ssh/agent
+		eval "$(<$HOME/.ssh/agent)" >/dev/null
+	fi
+	# Load default keys into the ssh-agent if available
+	ssh-add >/dev/null || true
 }
 
 # Configure preferred git settings
