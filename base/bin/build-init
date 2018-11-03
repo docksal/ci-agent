@@ -41,6 +41,13 @@ if [[ "${SANDBOX_PERMANENT}" != "" ]]; then
 	build-exec "echo SANDBOX_PERMANENT=${SANDBOX_PERMANENT} | tee -a .docksal/docksal-local.env"
 fi
 
+# Pass CI_SSH_KEY to sandbox
+# Note the key is passed as SECRET_SSH_PRIVATE_KEY, which docksal/cli reads, decodes and stores as ~/.ssh/id_rsa
+if [[ "${CI_SSH_KEY}" != "" ]]; then
+	echo "Passing CI_SSH_KEY to sandbox..."
+	build-exec "echo SECRET_SSH_PRIVATE_KEY=\"${CI_SSH_KEY}\" | tee -a .docksal/docksal-local.env >/dev/null"
+fi
+
 # Pass build secrets to sandbox
 # A "secret" is any environment variable that starts with "SECRET_"
 secrets="$(env | grep 'SECRET_')" || true
