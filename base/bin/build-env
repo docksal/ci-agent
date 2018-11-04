@@ -192,7 +192,7 @@ ssh_init ()
 		eval "$(<$HOME/.ssh/agent)" >/dev/null
 	fi
 	# Load default keys into the ssh-agent if available
-	ssh-add >/dev/null || true
+	ssh-add &>/dev/null || true
 }
 
 # Configure preferred git settings
