@@ -50,7 +50,7 @@ fi
 
 # Pass build secrets to sandbox
 # A "secret" is any environment variable that starts with "SECRET_"
-secrets="$(env | grep 'SECRET_')" || true
+secrets="$(env | grep '^SECRET_')" || true
 if [[ "${secrets}" != "" ]]; then
 	echo "Passing build secrets to sandbox..."
 	build-exec "echo '${secrets}' | tee -a .docksal/docksal-local.env >/dev/null"
