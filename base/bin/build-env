@@ -43,6 +43,11 @@ safe_string ()
 # Initial build environment configuration
 build_env ()
 {
+	# Drop variables with "null" values
+	# This allows, at the project level, unsetting build variables set at the org level
+	empty_vars="$(env | grep '=null$' | cut -d = -f 1)"
+	while read -r i; do unset ${i}; done <<< "${empty_vars}"
+
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
 		echo-debug "Detected Bitbucket Pipelines build environment"
@@ -69,13 +74,13 @@ build_env ()
 		export GIT_BRANCH_NAME="$CIRCLE_BRANCH"
 		export GIT_COMMIT_HASH="$CIRCLE_SHA1"
 
-		if [[ $CIRCLE_REPOSITORY_URL == *"github.com"* ]]; then
+		if [[ "$CIRCLE_REPOSITORY_URL" == *"github.com"* ]]; then
 			export GIT_REPO_SERVICE="github"
 			# Figure out the pull request number
 			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
 			export GIT_PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
 		fi
-		if [[ $CIRCLE_REPOSITORY_URL == *"bitbucket.org"* ]]; then
+		if [[ "$CIRCLE_REPOSITORY_URL" == *"bitbucket.org"* ]]; then
 			export GIT_REPO_SERVICE="bitbucket"
 			# Figure out the pull request number
 			# Cannot use $CIRCLE_PR_NUMBER as it's only available in forked PR builds
@@ -141,12 +146,15 @@ build_env ()
 	# Make sure domain name is lowercase
 	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
 
-	# Use "flat" sub-domains (e.g. branch-project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
+	# Use "flat" sub-domains (e.g. branch--project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
 	# This allows using a single wildcard cert for the entire sandbox server.
 	# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
 	# "www.sub-domain.example.com".
 	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
-	export DOMAIN="${BRANCH_NAME_SAFE}-${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+	export DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+
+	# Default to rsync for sandbox codebase initialization
+	export REMOTE_CODEBASE_METHOD="${REMOTE_CODEBASE_METHOD:-rsync}"
 }
 
 # Configure SSH keys
@@ -154,17 +162,37 @@ build_env ()
 # Since this scripts is supposed to be sourced for every run command, the keys will be reset back to our values.
 ssh_init ()
 {
+	mkdir -p $HOME/.ssh
+
+	# Default key used for all hosts
 	if [[ "$CI_SSH_KEY" != "" ]]; then
-		umask  077
 		echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa
 		chmod 0600 $HOME/.ssh/id_rsa
 	fi
 
+	# Docksal Sandbox server key
 	if [[ "$DOCKSAL_HOST_SSH_KEY" != "" ]]; then
-		umask  077
 		echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa
 		chmod 0600 $HOME/.ssh/docksal_host_id_rsa
 	fi
+
+	# Initialize ssh-agent and load the default key ($HOME/.ssh/id_rsa)
+	# Check whether ssh-agent is configured
+	ssh-add -l &>/dev/null || ret=$?
+	# If ssh-agent is not configured, but config file exists, attempt to load agent settings from the file
+	if [[ "${ret}" == 2 ]] && [[ -f $HOME/.ssh/agent ]]; then
+		eval "$(<$HOME/.ssh/agent)" >/dev/null
+	fi
+	# Check whether ssh-agent is configured again
+	ssh-add -l &>/dev/null || ret=$?
+	# If the existing config was invalid, start a new agent and write new config
+	if [[ "${ret}" == 2 ]]; then
+		ssh-agent > $HOME/.ssh/agent
+		chmod 0600 $HOME/.ssh/agent
+		eval "$(<$HOME/.ssh/agent)" >/dev/null
+	fi
+	# Load default keys into the ssh-agent if available
+	ssh-add &>/dev/null || true
 }
 
 # Configure preferred git settings

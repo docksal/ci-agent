@@ -8,7 +8,7 @@ env:
     - REPO=docksal/ci-agent
 
 install:
-  - curl -fsSL get.docksal.io | sh
+  - curl -fsSL get.docksal.io | bash
   - fin version
   - fin sysinfo
 
