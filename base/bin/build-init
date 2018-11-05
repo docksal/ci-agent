@@ -43,10 +43,12 @@ fi
 
 # Pass CI_SSH_KEY to sandbox
 # Note the key is passed as SECRET_SSH_PRIVATE_KEY, which docksal/cli reads, decodes and stores as ~/.ssh/id_rsa
-if [[ "${CI_SSH_KEY}" != "" ]]; then
-	echo "Passing CI_SSH_KEY to sandbox..."
-	build-exec "echo SECRET_SSH_PRIVATE_KEY=\"${CI_SSH_KEY}\" | tee -a .docksal/docksal-local.env >/dev/null"
-fi
+# Disabled for now. This may be a security concern, if a single shared machine-user SSH key is used across multiple projects.
+# TODO: Load the key into the docksal/ssh-agent service on the sandbox server instead.
+#if [[ "${CI_SSH_KEY}" != "" ]]; then
+#	echo "Passing CI_SSH_KEY to sandbox..."
+#	build-exec "echo SECRET_SSH_PRIVATE_KEY=\"${CI_SSH_KEY}\" | tee -a .docksal/docksal-local.env >/dev/null"
+#fi
 
 # Pass build secrets to sandbox
 # A "secret" is any environment variable that starts with "SECRET_"
