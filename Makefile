@@ -20,6 +20,7 @@ shell: clean
 	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION) /bin/bash -oe pipefail
 
 exec:
+	# Note: variables defined inside COMMAND get interpreted on the host, unless escaped, e.g. \$${CI_SSH_KEY}.
 	docker exec $(NAME) /bin/bash -oe pipefail -c "$(COMMAND)"
 
 run: clean
@@ -35,7 +36,7 @@ logs:
 	docker logs $(NAME)
 
 clean:
-	docker rm -f $(NAME) &>/dev/null || true
+	docker rm -f $(NAME) || true
 
 release: build
 	make push -e VERSION=$(VERSION)

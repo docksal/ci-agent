@@ -10,9 +10,8 @@ teardown() {
 	echo "================================================================"
 }
 
-# Global skip
-# Uncomment below, then comment skip in the test you want to debug. When done, reverse.
-#SKIP=1
+# To work on a specific test:
+# run `export SKIP=1` locally, then comment skip in the test you want to debug
 
 @test "Check binaries" {
 	[[ $SKIP == 1 ]] && skip
@@ -48,12 +47,12 @@ teardown() {
 
 	### Tests ###
 	# Check git settings were applied
-	run make exec COMMAND='bash -c "source build-env; git config --get --global user.email"'
+	run make exec COMMAND="source build-env; git config --get --global user.email"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "git@example.com"
 	unset output
 
-	run make exec COMMAND='bash -c "source build-env; git config --get --global user.name"'
+	run make exec COMMAND="source build-env; git config --get --global user.name"
 	[[ "$status" == 0 ]]
 	echo "$output" | grep "Docksal CLI"
 	unset output
@@ -72,12 +71,14 @@ teardown() {
 	### Tests ###
 
 	# Check private SSH key
-	run make exec COMMAND='bash -c "source build-env; echo \$$CI_SSH_KEY | base64 -d | diff \$$HOME/.ssh/id_rsa -"'
+	# COMMAND is wrapped in double quotes in Makefile, so variables defined inside it get interpreted on the host,
+	# unless escaped, e.g. \$${CI_SSH_KEY}
+	run make exec COMMAND='source build-env; echo \$${CI_SSH_KEY} | base64 -d | diff \$${HOME}/.ssh/id_rsa -'
 	[[ "$status" == 0 ]]
 	unset output
 
 	# Check ssh-agent
-	run make exec COMMAND='bash -c "source build-env; ssh-add -l"'
+	run make exec COMMAND="source build-env; ssh-add -l"
 	[[ "$status" == 0 ]]
 	unset output
 
