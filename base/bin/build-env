@@ -45,8 +45,12 @@ build_env ()
 {
 	# Drop variables with "null" values
 	# This allows, at the project level, unsetting build variables set at the org level
-	empty_vars="$(env | grep '=null$' | cut -d = -f 1)"
-	while read -r i; do unset ${i}; done <<< "${empty_vars}"
+	if empty_vars="$(env | grep '=null$' | cut -d = -f 1)"; then
+		while read -r i; do
+			echo-debug "Dropping the '${i}' variable with a 'null' value..."
+			unset ${i};
+		done <<< "${empty_vars}"
+	fi
 
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
