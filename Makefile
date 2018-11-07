@@ -17,10 +17,10 @@ push:
 	docker push $(REPO):$(VERSION)
 
 shell: clean
-	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION) /bin/bash
+	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION) /bin/bash -oe pipefail
 
 exec:
-	docker exec $(NAME) $(COMMAND)
+	docker exec $(NAME) /bin/bash -oe pipefail -c "$(COMMAND)"
 
 run: clean
 	docker run --rm --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION)
@@ -35,7 +35,7 @@ logs:
 	docker logs $(NAME)
 
 clean:
-	docker rm -f $(NAME) || true
+	docker rm -f $(NAME) &>/dev/null || true
 
 release: build
 	make push -e VERSION=$(VERSION)

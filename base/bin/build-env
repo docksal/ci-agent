@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -eo pipefail
 
 # Configures build environment variables
 # This file should be sources at the beginning of a build
@@ -7,8 +7,6 @@
 
 # IMPORTANT: This script is sourced in the build environment.
 # Any settings set here using set/trap/etc. will propagate to all build steps.
-# As such, it's best not to make any adjustment or make sure they are reverted at the end of the script.
-# E.g., instead of "set -e" use "exit 1" where necessary.
 
 # -------------------- Constants -------------------- #
 
