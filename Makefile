@@ -17,10 +17,11 @@ push:
 	docker push $(REPO):$(VERSION)
 
 shell: clean
-	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION) /bin/bash
+	docker run --rm --name $(NAME) -it $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION) /bin/bash -oe pipefail
 
 exec:
-	docker exec $(NAME) $(COMMAND)
+	# Note: variables defined inside COMMAND get interpreted on the host, unless escaped, e.g. \$${CI_SSH_KEY}.
+	docker exec $(NAME) /bin/bash -oe pipefail -c "$(COMMAND)"
 
 run: clean
 	docker run --rm --name $(NAME) $(PORTS) $(VOLUMES) $(ENV) $(REPO):$(VERSION)
