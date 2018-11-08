@@ -71,7 +71,7 @@ bitbucket_status_api ()
 
 	echo "Notifying Bitbucket Status API: ${context} => ${state}"
 
-	PAYLOAD="{\"key\": \"${context}\", \"state\": \"${state}\", \"description\": \"${description}\", \"url\": \"${url}\"}"
+	PAYLOAD="{\"key\": \"${context}\", \"name\": \"${context}\", \"state\": \"${state}\", \"description\": \"${description}\", \"url\": \"${url}\"}"
 	API_URL="https://api.bitbucket.org/2.0/repositories/${GIT_REPO_OWNER}/${GIT_REPO_NAME}/commit/${GIT_COMMIT_HASH}/statuses/build"
 
 	output=$(curl -sS --request POST "${API_URL}" \
