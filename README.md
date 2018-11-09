@@ -75,12 +75,12 @@ This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is di
 
 `DOCKSAL_HOST_USER`
 
-The user's name that should have access to the remote Docksal host. Defaults to `ubuntu`.
+The user's name that should have access to the remote Docksal host. Defaults to `build-agent`.
 
 `REMOTE_BUILD_BASE`
 
 The default directory location on the remote server where the repositories should be cloned down to and built. 
-Defaults to `/home/ubuntu/builds`
+Defaults to `/home/build-agent/builds`
 
 `REMOTE_CODEBASE_METHOD`
 
