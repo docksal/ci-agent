@@ -59,7 +59,7 @@ If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard dom
 
 A base64 encoded private SSH key, used to access the remote Docksal host.
 
-Note: `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key.
+Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key, while on Linux, in WSL on Windows 10 and in Babun `cat /path/to/<private_key_file> | base64 -w 0` should be used to avoid output wrapping of the `base64` command).
 
 ### Optional
 
