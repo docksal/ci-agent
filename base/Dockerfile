@@ -45,9 +45,13 @@ RUN set -xe; \
 
 COPY bin /usr/local/bin
 COPY config/.ssh/config $AGENT_HOME/.ssh/config
+COPY docker-entrypoint.sh /bin
+
 # Fix permissions after COPY (could use COPY --chown, but will still need to run chmod)
 RUN set -xe; \
 	sudo chown $AGENT_USER:$AGENT_USER $AGENT_HOME/.ssh/config; \
 	sudo chmod 600 $AGENT_HOME/.ssh/config;
 
 WORKDIR $AGENT_HOME/build
+
+ENTRYPOINT ["docker-entrypoint.sh"]
