@@ -143,17 +143,22 @@ build_env ()
 	# Set the sandbox user name in agent's SSH config
 	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
 
-	# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
-	# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
-	# Make sure domain name is lowercase
-	export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
+	if [[ "$SANDBOX_DOMAIN" != "" ]]; then
+		# Allow setting a custom domain for a sandbox
+		export DOMAIN="$SANDBOX_DOMAIN"
+	else
+		# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
+		# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
+		# Make sure domain name is lowercase
+		export DOCKSAL_DOMAIN="$(echo -n ${DOCKSAL_DOMAIN:-$DOCKSAL_HOST} | awk '{print tolower($0)}')"
 
-	# Use "flat" sub-domains (e.g. branch--project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
-	# This allows using a single wildcard cert for the entire sandbox server.
-	# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
-	# "www.sub-domain.example.com".
-	# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
-	export DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+		# Use "flat" sub-domains (e.g. branch--project.example.com) and not multi-sub-domains (e.g. branch.project.example.com)
+		# This allows using a single wildcard cert for the entire sandbox server.
+		# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
+		# "www.sub-domain.example.com".
+		# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
+		export DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+	fi
 
 	# Default to rsync for sandbox codebase initialization
 	export REMOTE_CODEBASE_METHOD="${REMOTE_CODEBASE_METHOD:-rsync}"
