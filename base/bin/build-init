@@ -31,7 +31,7 @@ else
 	if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == 1 ]]; then
 		build-exec "git clone --branch="${GIT_BRANCH_NAME}" --depth 50 ${GIT_REPO_URL} . && git reset --hard ${GIT_COMMIT_HASH} && ls -la"
 	else
-		build-exec "git fetch origin && git reset --hard origin/$GIT_BRANCH_NAME"
+		build-exec "(git fetch origin && git reset --hard origin/$GIT_BRANCH_NAME >/dev/null) || (git clone --branch="${GIT_BRANCH_NAME}" --depth 50 ${GIT_REPO_URL} . && git reset --hard ${GIT_COMMIT_HASH} && ls -la)"
 	fi
 fi
 
@@ -72,7 +72,6 @@ fi
 
 secrets="$(compgen -A variable | grep '^SECRET_')" || true
 # secrets="$(env | grep '^SECRET_')" || true
-done
 if [[ "${secrets}" != "" ]]; then
 	echo "Passing build secrets to sandbox..."
 	for secret in $secrets
