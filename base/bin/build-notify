@@ -8,7 +8,7 @@
 DEBUG=${DEBUG:-0}  # `DEBUG=1 build-notify` to run with debugging turned ON
 
 export CONTEXT="ci/docksal"  # Context for notifications
-export URL="https://${DOMAIN}"  # Sandbox URL
+export URL="https://${SANDBOX_DOMAIN}"  # Sandbox URL
 export STATUS_API=${STATUS_API:-1}  # Status API notifications enabled by default
 export PR_COMMENT=${PR_COMMENT:-0}  # PR comment notifications disabled by default
 
@@ -22,7 +22,7 @@ export PR_COMMENT=${PR_COMMENT:-0}  # PR comment notifications disabled by defau
 # @param $3 description - description of the status update
 # @param $4 url - status link URL
 #
-# Example: github_status_api "sandbox" "pending" "Started building sandbox environment" "http://${DOMAIN}"
+# Example: github_status_api "sandbox" "pending" "Started building sandbox environment" "http://${SANDBOX_DOMAIN}"
 #
 github_status_api ()
 {
@@ -57,7 +57,7 @@ github_status_api ()
 # @param $3 description - description of the status update
 # @param $4 url - status link URL
 #
-# Example: bitbucket_status_api "sandbox" "INPROGRESS" "Sandbox environment" "http://${DOMAIN}"
+# Example: bitbucket_status_api "sandbox" "INPROGRESS" "Sandbox environment" "http://${SANDBOX_DOMAIN}"
 #
 bitbucket_status_api ()
 {

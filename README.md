@@ -73,6 +73,10 @@ This key will be used to clone/push to git, run commands over SSH on a remote de
 Can be used to set the base URL for sandbox builds (defaults to `DOCKSAL_HOST` if not set), individually from `DOCKSAL_HOST`.  
 This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is different from the `DOCKSAL_HOST`)
 
+`SANDBOX_DOMAIN`
+
+Sets a custom domain for a sandbox. Takes precedence over the automatic (branch name based) domain generation. 
+
 `DOCKSAL_HOST_USER`
 
 The user's name that should have access to the remote Docksal host. Defaults to `build-agent`.

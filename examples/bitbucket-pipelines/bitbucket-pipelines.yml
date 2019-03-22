@@ -9,4 +9,4 @@ pipelines:
           - slack "Started sandbox build for branch *${BITBUCKET_BRANCH}*"  # post to Slack
           - build-exec "fin init"  # Run fin init on the remote docker host to provision a sandbox
           - build-exec "cd docroot && fin drush st"  # Run other commands on the sandbox server
-          - slack "Completed sandbox build for branch *${BITBUCKET_BRANCH}*:\n<http://${DOMAIN}|http://${DOMAIN}>"
+          - slack "Completed sandbox build for branch *${BITBUCKET_BRANCH}*:\n<http://${SANDBOX_DOMAIN}|http://${SANDBOX_DOMAIN}>"
