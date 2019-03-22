@@ -26,7 +26,7 @@ fi
 # Configure sandbox settings
 echo "Configuring sandbox settings..."
 build-exec "echo COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} | tee -a .docksal/docksal-local.env"
-build-exec "echo VIRTUAL_HOST=${DOMAIN} | tee -a .docksal/docksal-local.env"
+build-exec "echo VIRTUAL_HOST=${SANDBOX_DOMAIN} | tee -a .docksal/docksal-local.env"
 
 # Basic HTTP Auth
 if [[ "${HTTP_USER}" != "" ]] && [[ "${HTTP_PASS}" != "" ]]; then

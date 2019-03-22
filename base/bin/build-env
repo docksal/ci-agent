@@ -143,10 +143,8 @@ build_env ()
 	# Set the sandbox user name in agent's SSH config
 	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
 
-	if [[ "$SANDBOX_DOMAIN" != "" ]]; then
-		# Allow setting a custom domain for a sandbox
-		export DOMAIN="$SANDBOX_DOMAIN"
-	else
+	# If a custom domains was not set via agent's build environment, derive the domain from the branch name.
+	if [[ "$SANDBOX_DOMAIN" == "" ]]; then
 		# Allow setting DOCKSAL_DOMAIN individually from DOCKSAL_HOST. Default to DOCKSAL_HOST if not set.
 		# This is useful when working with CDNs/ELBs/WAFs/etc (when DOCKSAL_DOMAIN is different from the DOCKSAL_HOST).
 		# Make sure domain name is lowercase
@@ -157,7 +155,7 @@ build_env ()
 		# Note: A wildcard cert for "*.example.com", will only cover "sub-domain.example.dom", but not
 		# "www.sub-domain.example.com".
 		# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
-		export DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
+		export SANDBOX_DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
 	fi
 
 	# Default to rsync for sandbox codebase initialization
