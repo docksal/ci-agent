@@ -157,6 +157,9 @@ build_env ()
 		# NOTE: The length of any one label (sub-domain) in the domain name is limited to 63 octets (characters).
 		export SANDBOX_DOMAIN="${BRANCH_NAME_SAFE}--${REPO_NAME_SAFE}.${DOCKSAL_DOMAIN}"
 	fi
+	# Backward compatibility with ci-agent versions prior to 1.6.1.
+	# This variable may be used in custom Slack notifications.
+	export DOMAIN="$SANDBOX_DOMAIN"
 
 	# Default to rsync for sandbox codebase initialization
 	export REMOTE_CODEBASE_METHOD="${REMOTE_CODEBASE_METHOD:-rsync}"
