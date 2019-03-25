@@ -39,23 +39,18 @@ fi
 echo "Configuring sandbox settings..."
 build-exec "fin config set COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} --env=local"
 build-exec "fin config set VIRTUAL_HOST=${SANDBOX_DOMAIN} --env=local"
-#build-exec "echo COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} | tee -a .docksal/docksal-local.env"
-#build-exec "echo VIRTUAL_HOST=${SANDBOX_DOMAIN} | tee -a .docksal/docksal-local.env"
 
 # Basic HTTP Auth
 if [[ "${HTTP_USER}" != "" ]] && [[ "${HTTP_PASS}" != "" ]]; then
 	echo "Configuring sandbox Basic HTTP Authentication..."
 	build-exec "fin config set APACHE_BASIC_AUTH_USER=${HTTP_USER} --env=local"
 	build-exec "fin config set APACHE_BASIC_AUTH_PASS=${HTTP_PASS} --env=local"
-	# build-exec "echo APACHE_BASIC_AUTH_USER=${HTTP_USER} | tee -a .docksal/docksal-local.env"
-	# build-exec "echo APACHE_BASIC_AUTH_PASS=${HTTP_PASS} | tee -a .docksal/docksal-local.env"
 fi
 
 # Permanent environment switch
 if [[ "${SANDBOX_PERMANENT}" != "" ]]; then
 	echo "Setting sandbox as permanent..."
 	build-exec "fin config set SANDBOX_PERMANENT=${SANDBOX_PERMANENT} --env=local"
-	# build-exec "echo SANDBOX_PERMANENT=${SANDBOX_PERMANENT} | tee -a .docksal/docksal-local.env"
 fi
 
 # Pass CI_SSH_KEY to sandbox
@@ -78,5 +73,4 @@ if [[ "${secrets}" != "" ]]; then
 	do
 		build-exec "fin config set $secret=${!secret} --env=local >/dev/null"
 	done
-	# build-exec "echo '${secrets}' | tee -a .docksal/docksal-local.env >/dev/null"
 fi
