@@ -7,9 +7,9 @@ set -e # Abort if anything fails
 
 # Cleanup
 echo "Setting up remote build environment..."
-if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == 1 ]] || [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]]; then
+if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == "1" ]] || [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]]; then
 	echo "Re-initializing remote environment from scratch..."
-	[[ "${REMOTE_BUILD_DIR_CLEANUP}" == 0 ]] && [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]] && echo "rsync is not supported for preserved builds!"
+	[[ "${REMOTE_BUILD_DIR_CLEANUP}" == "0" ]] && [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]] && echo "rsync is not supported for preserved builds!"
 	ssh docker-host "(cd ${REMOTE_BUILD_DIR} 2>/dev/null && fin rm -f 2>/dev/null) || true"
 	ssh docker-host "sudo rm -rf ${REMOTE_BUILD_DIR} 2>/dev/null; mkdir -p ${REMOTE_BUILD_DIR}"
 else
@@ -28,7 +28,7 @@ if [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]]; then
 else
 	# Checkout sources on the remote host
 	echo "Checking out codebase via git..."
-	if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == 1 ]]; then
+	if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == "1" ]]; then
 		build-exec "git clone --branch="${GIT_BRANCH_NAME}" --depth 50 ${GIT_REPO_URL} . && git reset --hard ${GIT_COMMIT_HASH} && ls -la"
 	else
 		build-exec "(git fetch origin && git reset --hard origin/$GIT_BRANCH_NAME && ls -la) || (git clone --branch="${GIT_BRANCH_NAME}" --depth 50 ${GIT_REPO_URL} . && git reset --hard ${GIT_COMMIT_HASH} && ls -la)"
