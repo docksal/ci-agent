@@ -2,8 +2,9 @@
 
 # This script sets up a sandbox environment for the build on the remote docker host.
 
+# Exit if using an invalid codebase method.
 if [[ "${REMOTE_CODEBASE_METHOD}" != "rsync" ]] && [[ "${REMOTE_CODEBASE_METHOD}" != "git" ]]; then
-	echo "Only rsync and git codebase methods are supported. ${REMOTE_CODEBASE_METHOD} method given. Aborting."
+	echo "Only rsync and git codebase methods are supported. '${REMOTE_CODEBASE_METHOD}' method given. Aborting."
 	exit 1
 fi
 
@@ -21,9 +22,7 @@ set -e # Abort if anything fails
 # 1) REMOTE_BUILD_DIR_CLEANUP is set to 1.
 # 2) rsync is the supported method of transferring the codebase.
 # 3) git is the supported method but the remote directory either doesn't exist
-#    or is not a git repository, signaling a possible build method switch from
-#    rsync -> git, or the directory was somehow created outside of the agent's
-#    purview.
+#    or is not a git repository.
 # 4) git is the supported method but the remote build directory does not exist yet.
 echo "Cleaning up remote build environment..."
 if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == "1" ]] ||
@@ -43,7 +42,7 @@ fi
 if [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]]; then
 	# Rsync sources to the remote host
 	echo "Syncing codebase via rsync..."
-	rsync --delete -az ${BUILD_DIR}/ docker-host:${REMOTE_BUILD_DIR}
+	rsync --delete --exclude='/.git' -az ${BUILD_DIR}/ docker-host:${REMOTE_BUILD_DIR}
 else
 	# Checkout sources on the remote host
 	echo "Checking out codebase via git..."
