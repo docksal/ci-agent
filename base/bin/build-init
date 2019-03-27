@@ -65,8 +65,11 @@ fi
 # Pass build secrets to sandbox
 # A "secret" is any environment variable that starts with "SECRET_"
 
+# Parse all environment variables for those prefixed with SECRET_ and then
+# inject each variable/value pair into docksal-local.env. This allows you to
+# add secure variables to your project's repository that can be injected into
+# each sandbox environment.
 secrets="$(compgen -A variable | grep '^SECRET_')" || true
-# secrets="$(env | grep '^SECRET_')" || true
 if [[ "${secrets}" != "" ]]; then
 	echo "Passing build secrets to sandbox..."
 	for secret in $secrets
