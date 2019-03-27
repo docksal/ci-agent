@@ -2,7 +2,7 @@
 
 # This script sets up a sandbox environment for the build on the remote docker host.
 
-if [[ "${REMOTE_CODEBASE_METHOD}" != "rsync" ]] || [[ "${REMOTE_CODEBASE_METHOD}" != "git" ]]; then
+if [[ "${REMOTE_CODEBASE_METHOD}" != "rsync" ]] && [[ "${REMOTE_CODEBASE_METHOD}" != "git" ]]; then
 	echo "Only rsync and git codebase methods are supported. ${REMOTE_CODEBASE_METHOD} method given. Aborting."
 	exit 1
 fi
