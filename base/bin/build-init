@@ -40,7 +40,8 @@ fi
 
 # Remote codebase initialization method. Either 'rsync' (default) or 'git'
 if [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]]; then
-	# Rsync sources to the remote host
+	# Rsync sources to the remote host. Exclude root .git to make switching to
+	# a git codebase method later possible without error.
 	echo "Syncing codebase via rsync..."
 	rsync --delete --exclude='/.git' -az ${BUILD_DIR}/ docker-host:${REMOTE_BUILD_DIR}
 else
