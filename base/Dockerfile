@@ -15,18 +15,18 @@ RUN set -xe; \
 	; \
 	rm -rf /var/cache/apk/*;
 
-ARG DOCKER_VERSION=18.06.0-ce
-ARG DOCKER_COMPOSE_VERSION=1.21.0
+ARG DOCKER_VERSION=18.09.2
+ARG DOCKER_COMPOSE_VERSION=1.23.2
 RUN set -xe; \
 	# Install docker cli
-	curl -sSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz"; \
+	curl -fsSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz"; \
 	tar zxf docker-${DOCKER_VERSION}.tgz && mv docker/docker /usr/local/bin && rm -rf docker-${DOCKER_VERSION}*; \
 	docker --version; \
 	# Install docker-compose cli (has to be installed via pip on Alpine)
 	pip install "docker-compose==${DOCKER_COMPOSE_VERSION}" >/dev/null; \
 	docker-compose --version; \
 	# Install minio client (mc)
-	curl -sSL https://dl.minio.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc; \
+	curl -fsSL https://dl.minio.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc; \
 	chmod +x /usr/local/bin/mc
 
 ENV AGENT_USER=agent
