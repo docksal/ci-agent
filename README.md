@@ -84,7 +84,7 @@ Defaults to `/home/build-agent/builds`
 
 `REMOTE_CODEBASE_METHOD`
 
-Pick between `git` and `rsync` (default) for the codebase initialization method on the sandbox server.
+Pick between `rsync` (default) and `git` for the codebase initialization method on the sandbox server.
 
 The codebase is initialized on the sandbox server by the `sandbox-init` (or `build-init`) command.
 
@@ -94,6 +94,15 @@ Any build settings and necessary code manipulations must happen on the sandbox s
 `rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the 
 build agent after running `build-env` and before running `sandbox-init` (or `build-init`), which pushes the code to the 
 sandbox server.
+
+`REMOTE_BUILD_DIR_CLEANUP`
+
+Whether or not the remote build directory is reset during the build. Only supported with `REMOTE_CODEBASE_METHOD=git`.
+
+Defaults to `1` which wipes the remote build directory and produces a "clean build".    
+Set to `0` to produce "dirty builds", when file changes in the remote codebase should be preserved.
+
+Note: Switching `REMOTE_CODEBASE_METHOD` mode will result in a clean build. 
 
 `SANDBOX_PERMANENT`
 
@@ -111,8 +120,6 @@ branch environments as permanent.
 Sets a custom domain for a sandbox. Takes precedence over the automatic (branch name based) domain generation.
 
 This can be used for sandbox environments which need a custom (nice) domain name.
-Coupled with `SANDBOX_PERMANENT=true`, this can be used for low overhead, production-ish or demo environments, 
-where the on-demand (delayed) start is not a concern. 
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
