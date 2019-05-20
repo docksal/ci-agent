@@ -386,3 +386,16 @@ This provides a simple yet efficient level of security for artifacts.
 
 To add an additional level of security follow [this guide](https://medium.com/@lmakarov/serverless-password-protecting-a-static-website-in-an-aws-s3-bucket-bfaaa01b8666) 
 to set up username/password access to S3 via CloudFront and Lambda@Edge.
+
+
+## Feature: Production-ish environments
+
+By combining the following configuration options you can get low overhead production-ish/demo environments, 
+where the on-demand delayed start (5-10s delay) is not a concern.
+
+```
+SANDBOX_DOMAIN=<nice-domain>
+SANDBOX_PERMANENT=true
+REMOTE_CODEBASE_METHOD=git
+REMOTE_BUILD_DIR_CLEANUP=0
+``` 
