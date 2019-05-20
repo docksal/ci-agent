@@ -49,7 +49,7 @@ mc mb "s3/${ARTIFACTS_BUCKET_NAME}"
 # Upload artifact into the bucket
 # TODO: figure out how to skip timestemp checking. Maybe use aws-cli instead on the minio client?
 # Looks like mirror does not have any benefit here over cp. Files in build have newer timestamps and are always copied.
-mc mirror --force --remove ${source} ${destination}
+mc mirror --overwrite --remove ${source} ${destination}
 # Set read-only permissions on BUCKET_PATH
 # Access is possible only if BUCKET_PATH is known (parent bucket stays private => XML listing of bucket objects disabled)
 mc policy download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
