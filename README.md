@@ -73,10 +73,6 @@ This key will be used to clone/push to git, run commands over SSH on a remote de
 Can be used to set the base URL for sandbox builds (defaults to `DOCKSAL_HOST` if not set), individually from `DOCKSAL_HOST`.  
 This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is different from the `DOCKSAL_HOST`)
 
-`SANDBOX_DOMAIN`
-
-Sets a custom domain for a sandbox. Takes precedence over the automatic (branch name based) domain generation. 
-
 `DOCKSAL_HOST_USER`
 
 The user's name that should have access to the remote Docksal host. Defaults to `build-agent`.
@@ -98,6 +94,25 @@ Any build settings and necessary code manipulations must happen on the sandbox s
 `rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the 
 build agent after running `build-env` and before running `sandbox-init` (or `build-init`), which pushes the code to the 
 sandbox server.
+
+`SANDBOX_PERMANENT`
+
+Set `SANDBOX_PERMANENT=true` to have a permanent sandbox provisioned.
+
+Permanent sandboxes are exempt from scheduled garbage collection on the sandbox server. They would still hibernate after
+the configured period of inactivity, but won't be removed from the server after becoming dangling.
+See https://github.com/docksal/service-vhost-proxy#advanced-proxy-configuration for more information. 
+
+This variable is usually set at the branch level in the build settings to designate a specific (one or multiple) 
+branch environments as permanent.
+
+`SANDBOX_DOMAIN`
+
+Sets a custom domain for a sandbox. Takes precedence over the automatic (branch name based) domain generation.
+
+This can be used for sandbox environments which need a custom (nice) domain name.
+Coupled with `SANDBOX_PERMANENT=true`, this can be used for low overhead, production-ish or demo environments, 
+where the on-demand (delayed) start is not a concern. 
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
