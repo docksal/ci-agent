@@ -200,8 +200,11 @@ ssh_init ()
 		chmod 0600 $HOME/.ssh/agent
 		eval "$(<$HOME/.ssh/agent)" >/dev/null
 	fi
-	# Load default keys into the ssh-agent if available
-	ssh-add &>/dev/null || true
+	# load ssh keys listed in config, if available, to ssh-agent
+	for key in $(grep -iE "^\s*IdentityFile" $HOME/.ssh/config | rev | cut -d' ' -f1 | rev || true)
+	do
+		[[ -f ${key} ]] && ssh-add ${key} || true
+	done
 }
 
 # Configure preferred git settings
