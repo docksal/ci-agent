@@ -388,10 +388,9 @@ To add an additional level of security follow [this guide](https://medium.com/@l
 to set up username/password access to S3 via CloudFront and Lambda@Edge.
 
 
-## Feature: Production-ish environments
+## Feature: Non-volatile environments
 
-By combining the following configuration options you can get low overhead production-ish/demo environments, 
-where the on-demand delayed start (5-10s delay) is not a concern.
+By combining the following configuration options you can get low overhead non-volatile environments.
 
 ```
 SANDBOX_DOMAIN=<nice-domain>
@@ -399,3 +398,6 @@ SANDBOX_PERMANENT=true
 REMOTE_CODEBASE_METHOD=git
 REMOTE_BUILD_DIR_CLEANUP=0
 ``` 
+
+Such environments can be used for non-critical production-ish workloads, whenever an on-demand delayed start 
+(5-10s delay) is not a concern.
