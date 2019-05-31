@@ -5,8 +5,8 @@
 #
 # Usage: build-acp <source>
 
-# Abort if anything failse
-set -e
+set -e # Abort if anything fails
+#set -x # Echo commands
 
 if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] || [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]] || [[ "${ARTIFACTS_BUCKET_NAME}" == "" ]]; then
 	echo "Cannot upload artifacts."
@@ -27,7 +27,7 @@ source=${1}
 # Sync destination on S3
 destination="s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
 # Allow specifying a subpath within the destination path
-[[ "${2}" != "" ]] && destination="${destination}/${2}"
+if [[ "${2}" != "" ]]; then destination="${destination}/${2}"; fi
 
 # Print configuration for debugging purposes
 echo "Configuration: "
