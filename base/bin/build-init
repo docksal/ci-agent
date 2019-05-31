@@ -2,43 +2,77 @@
 
 # This script sets up a sandbox environment for the build on the remote docker host.
 
+# Exit if using an invalid codebase method.
+if [[ "${REMOTE_CODEBASE_METHOD}" != "rsync" ]] && [[ "${REMOTE_CODEBASE_METHOD}" != "git" ]]; then
+	echo "Only rsync and git codebase methods are supported. '${REMOTE_CODEBASE_METHOD}' method given. Aborting."
+	exit 1
+fi
+
+# Collect information surrounding the existence of the remote build directory,
+# and whether or not it is a Git repository.
+ssh docker-host "[ -d $REMOTE_BUILD_DIR ]"
+remote_build_dir_exists_check_result=$?
+ssh docker-host "[ -d $REMOTE_BUILD_DIR/.git ]"
+remote_git_check_result=$?
+
 set -e # Abort if anything fails
 #set -x # Echo commands
 
-# Cleanup
-echo "Setting up remote build environment..."
-ssh docker-host "(cd ${REMOTE_BUILD_DIR} 2>/dev/null && fin rm -f 2>/dev/null) || true"
-ssh docker-host "sudo rm -rf ${REMOTE_BUILD_DIR} 2>/dev/null; mkdir -p ${REMOTE_BUILD_DIR}"
+# Cleanup under the following conditions:
+# 1) REMOTE_BUILD_DIR_CLEANUP is set to 1.
+# 2) rsync is the supported method of transferring the codebase.
+# 3) git is the supported method but the remote directory either doesn't exist
+#    or is not a git repository.
+# 4) git is the supported method but the remote build directory does not exist yet.
+echo "Cleaning up remote build environment..."
+if [[ "${REMOTE_BUILD_DIR_CLEANUP}" == "1" ]] ||
+	[[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]] ||
+	([[ "${REMOTE_CODEBASE_METHOD}" == "git" ]] && [[ $remote_git_check_result != 0 ]]) ||
+	([[ "${REMOTE_CODEBASE_METHOD}" == "git" ]] && [[ $remote_build_dir_exists_check_result != 0 ]]); then
+	echo "Cleanup is re-initializing the remote environment..."
+	ssh docker-host "(cd ${REMOTE_BUILD_DIR} 2>/dev/null && fin rm -f 2>/dev/null) || true"
+	ssh docker-host "sudo rm -rf ${REMOTE_BUILD_DIR} 2>/dev/null; mkdir -p ${REMOTE_BUILD_DIR}"
+else
+	echo "Cleanup is preserving the build environment."
+fi
 
 # Note: build-exec = ssh docker-host "cd $REMOTE_BUILD_DIR && ($@)"
 
-# Remote codebase initialization method. Either 'git' (default) or 'rsync'
+# Remote codebase initialization method. Either 'rsync' (default) or 'git'
 if [[ "${REMOTE_CODEBASE_METHOD}" == "rsync" ]]; then
-	# Rsync sources to the remote host
+	# Rsync sources to the remote host. Exclude root .git to make switching to
+	# a git codebase method later possible without error.
 	echo "Syncing codebase via rsync..."
-	rsync --delete -az ${BUILD_DIR}/ docker-host:${REMOTE_BUILD_DIR}
+	rsync --delete --exclude='/.git' -az ${BUILD_DIR}/ docker-host:${REMOTE_BUILD_DIR}
 else
 	# Checkout sources on the remote host
 	echo "Checking out codebase via git..."
-	build-exec "git clone --branch="${GIT_BRANCH_NAME}" --depth 50 ${GIT_REPO_URL} . && git reset --hard ${GIT_COMMIT_HASH} && ls -la"
+	if [[ $remote_git_check_result == 0 ]] && [[ "${REMOTE_BUILD_DIR_CLEANUP}" == "0" ]]; then
+		# Remote directory is confirmed to be a git repository and we are
+		# preserving the build, so we can safely fetch and reset.
+		build-exec "git fetch origin && git reset --hard origin/$GIT_BRANCH_NAME && ls -la"
+	else
+		# Remote directory is not a git repository.
+		build-exec "git clone --branch="${GIT_BRANCH_NAME}" --depth 50 ${GIT_REPO_URL} . && git reset --hard ${GIT_COMMIT_HASH} && ls -la"
+	fi
 fi
 
 # Configure sandbox settings
 echo "Configuring sandbox settings..."
-build-exec "echo COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} | tee -a .docksal/docksal-local.env"
-build-exec "echo VIRTUAL_HOST=${DOMAIN} | tee -a .docksal/docksal-local.env"
+build-exec "fin config set COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} --env=local"
+build-exec "fin config set VIRTUAL_HOST=${SANDBOX_DOMAIN} --env=local"
 
 # Basic HTTP Auth
 if [[ "${HTTP_USER}" != "" ]] && [[ "${HTTP_PASS}" != "" ]]; then
 	echo "Configuring sandbox Basic HTTP Authentication..."
-	build-exec "echo APACHE_BASIC_AUTH_USER=${HTTP_USER} | tee -a .docksal/docksal-local.env"
-	build-exec "echo APACHE_BASIC_AUTH_PASS=${HTTP_PASS} | tee -a .docksal/docksal-local.env"
+	build-exec "fin config set APACHE_BASIC_AUTH_USER=${HTTP_USER} --env=local"
+	build-exec "fin config set APACHE_BASIC_AUTH_PASS=${HTTP_PASS} --env=local"
 fi
 
 # Permanent environment switch
 if [[ "${SANDBOX_PERMANENT}" != "" ]]; then
 	echo "Setting sandbox as permanent..."
-	build-exec "echo SANDBOX_PERMANENT=${SANDBOX_PERMANENT} | tee -a .docksal/docksal-local.env"
+	build-exec "fin config set SANDBOX_PERMANENT=${SANDBOX_PERMANENT} --env=local"
 fi
 
 # Pass CI_SSH_KEY to sandbox
@@ -52,8 +86,18 @@ fi
 
 # Pass build secrets to sandbox
 # A "secret" is any environment variable that starts with "SECRET_"
-secrets="$(env | grep '^SECRET_')" || true
+
+# Parse all environment variables for those prefixed with SECRET_ and then
+# inject each variable/value pair into docksal-local.env. This allows you to
+# add secure variables to your project's repository that can be injected into
+# each sandbox environment.
+secrets="$(compgen -A variable | grep '^SECRET_')" || true
 if [[ "${secrets}" != "" ]]; then
 	echo "Passing build secrets to sandbox..."
-	build-exec "echo '${secrets}' | tee -a .docksal/docksal-local.env >/dev/null"
+	for secret in $secrets
+	do
+		build-exec "fin config set $secret='${!secret}' --env=local >/dev/null"
+	done
 fi
+
+set +e

@@ -59,7 +59,7 @@ If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard dom
 
 A base64 encoded private SSH key, used to access the remote Docksal host.
 
-Note: `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key.
+Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key, while on Linux, in WSL on Windows 10 and in Babun `cat /path/to/<private_key_file> | base64 -w 0` should be used to avoid output wrapping of the `base64` command).
 
 ### Optional
 
@@ -75,16 +75,16 @@ This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is di
 
 `DOCKSAL_HOST_USER`
 
-The user's name that should have access to the remote Docksal host. Defaults to `ubuntu`.
+The user's name that should have access to the remote Docksal host. Defaults to `build-agent`.
 
 `REMOTE_BUILD_BASE`
 
 The default directory location on the remote server where the repositories should be cloned down to and built. 
-Defaults to `/home/ubuntu/builds`
+Defaults to `/home/build-agent/builds`
 
 `REMOTE_CODEBASE_METHOD`
 
-Pick between `git` and `rsync` (default) for the codebase initialization method on the sandbox server.
+Pick between `rsync` (default) and `git` for the codebase initialization method on the sandbox server.
 
 The codebase is initialized on the sandbox server by the `sandbox-init` (or `build-init`) command.
 
@@ -94,6 +94,32 @@ Any build settings and necessary code manipulations must happen on the sandbox s
 `rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the 
 build agent after running `build-env` and before running `sandbox-init` (or `build-init`), which pushes the code to the 
 sandbox server.
+
+`REMOTE_BUILD_DIR_CLEANUP`
+
+Whether or not the remote build directory is reset during the build. Only supported with `REMOTE_CODEBASE_METHOD=git`.
+
+Defaults to `1` which wipes the remote build directory and produces a "clean build".    
+Set to `0` to produce "dirty builds", when file changes in the remote codebase should be preserved.
+
+Note: Switching `REMOTE_CODEBASE_METHOD` mode will result in a clean build. 
+
+`SANDBOX_PERMANENT`
+
+Set `SANDBOX_PERMANENT=true` to have a permanent sandbox provisioned.
+
+Permanent sandboxes are exempt from scheduled garbage collection on the sandbox server. They would still hibernate after
+the configured period of inactivity, but won't be removed from the server after becoming dangling.
+See https://github.com/docksal/service-vhost-proxy#advanced-proxy-configuration for more information. 
+
+This variable is usually set at the branch level in the build settings to designate a specific (one or multiple) 
+branch environments as permanent.
+
+`SANDBOX_DOMAIN`
+
+Sets a custom domain for a sandbox. Takes precedence over the automatic (branch name based) domain generation.
+
+This can be used for sandbox environments which need a custom (nice) domain name.
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
@@ -360,3 +386,18 @@ This provides a simple yet efficient level of security for artifacts.
 
 To add an additional level of security follow [this guide](https://medium.com/@lmakarov/serverless-password-protecting-a-static-website-in-an-aws-s3-bucket-bfaaa01b8666) 
 to set up username/password access to S3 via CloudFront and Lambda@Edge.
+
+
+## Feature: Non-volatile environments
+
+By combining the following configuration options you can get low overhead non-volatile environments.
+
+```
+SANDBOX_DOMAIN=<nice-domain>
+SANDBOX_PERMANENT=true
+REMOTE_CODEBASE_METHOD=git
+REMOTE_BUILD_DIR_CLEANUP=0
+``` 
+
+Such environments can be used for non-critical production-ish workloads, whenever an on-demand delayed start 
+(5-10s delay) is not a concern.
