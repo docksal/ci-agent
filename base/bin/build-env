@@ -109,6 +109,24 @@ build_env ()
 		export BUILD_DIR="$CI_PROJECT_DIR"
 	fi
 
+	# Support for Jenkins Git SCM
+	if [[ "$JENKINS_URL" != "" ]]; then
+		echo-debug "Detected Jenkins build environment"
+		export JENKINS_CI="true"
+
+		# TODO: Revise these/parse from $GIT_URL
+		export GIT_REPO_SERVICE="jenkins"
+		export GIT_REPO_OWNER="jenkins"
+		export GIT_REPO_NAME="jenkins"
+
+		export GIT_REPO_URL="$GIT_URL"
+		export GIT_BRANCH_NAME="$GIT_BRANCH"
+		export GIT_COMMIT_HASH="$GIT_COMMIT"
+
+		export BUILD_ID="$BUILD_ID"
+		export BUILD_DIR="$WORKSPACE"
+	fi
+
 	# For debug purposes these variables can be set manually.
 	# If they are empty here, then we cannot proceed.
 	if [[ "$GIT_REPO_URL" == "" ]] || [[ "$GIT_BRANCH_NAME" == "" ]] || [[ "$GIT_COMMIT_HASH" == "" ]]; then
