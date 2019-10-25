@@ -59,20 +59,20 @@ fi
 
 # Configure sandbox settings
 echo "Configuring sandbox settings..."
-build-exec "fin config set COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} --env=local"
-build-exec "fin config set VIRTUAL_HOST=${SANDBOX_DOMAIN} --env=local"
+build-exec "fin config set COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} --env=${AGENT_ENVIRONMENT}"
+build-exec "fin config set VIRTUAL_HOST=${SANDBOX_DOMAIN} --env=${AGENT_ENVIRONMENT}"
 
 # Basic HTTP Auth
 if [[ "${HTTP_USER}" != "" ]] && [[ "${HTTP_PASS}" != "" ]]; then
 	echo "Configuring sandbox Basic HTTP Authentication..."
-	build-exec "fin config set APACHE_BASIC_AUTH_USER=${HTTP_USER} --env=local"
-	build-exec "fin config set APACHE_BASIC_AUTH_PASS=${HTTP_PASS} --env=local"
+	build-exec "fin config set APACHE_BASIC_AUTH_USER=${HTTP_USER} --env=${AGENT_ENVIRONMENT}"
+	build-exec "fin config set APACHE_BASIC_AUTH_PASS=${HTTP_PASS} --env=${AGENT_ENVIRONMENT}"
 fi
 
 # Permanent environment switch
 if [[ "${SANDBOX_PERMANENT}" != "" ]]; then
 	echo "Setting sandbox as permanent..."
-	build-exec "fin config set SANDBOX_PERMANENT=${SANDBOX_PERMANENT} --env=local"
+	build-exec "fin config set SANDBOX_PERMANENT=${SANDBOX_PERMANENT} --env=${AGENT_ENVIRONMENT}"
 fi
 
 # Pass CI_SSH_KEY to sandbox
@@ -81,14 +81,14 @@ fi
 # TODO: Load the key into the docksal/ssh-agent service on the sandbox server instead.
 #if [[ "${CI_SSH_KEY}" != "" ]]; then
 #	echo "Passing CI_SSH_KEY to sandbox..."
-#	build-exec "echo SECRET_SSH_PRIVATE_KEY=\"${CI_SSH_KEY}\" | tee -a .docksal/docksal-local.env >/dev/null"
+#	build-exec "echo SECRET_SSH_PRIVATE_KEY=\"${CI_SSH_KEY}\" | tee -a .docksal/docksal-$AGENT_ENVIRONMENT.env >/dev/null"
 #fi
 
 # Pass build secrets to sandbox
 # A "secret" is any environment variable that starts with "SECRET_"
 
 # Parse all environment variables for those prefixed with SECRET_ and then
-# inject each variable/value pair into docksal-local.env. This allows you to
+# inject each variable/value pair into docksal-$AGENT_ENVIRONMENT.env. This allows you to
 # add secure variables to your project's repository that can be injected into
 # each sandbox environment.
 secrets="$(compgen -A variable | grep '^SECRET_')" || true
@@ -96,7 +96,7 @@ if [[ "${secrets}" != "" ]]; then
 	echo "Passing build secrets to sandbox..."
 	for secret in $secrets
 	do
-		build-exec "fin config set $secret='${!secret}' --env=local >/dev/null"
+		build-exec "fin config set $secret='${!secret}' --env=$AGENT_ENVIRONMENT >/dev/null"
 	done
 fi
 
