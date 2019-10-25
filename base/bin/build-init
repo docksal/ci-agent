@@ -2,6 +2,9 @@
 
 # This script sets up a sandbox environment for the build on the remote docker host.
 
+# Set script-specific variables.
+AGENT_ENVIRONMENT=${AGENT_ENVIRONMENT:-local}
+
 # Exit if using an invalid codebase method.
 if [[ "${REMOTE_CODEBASE_METHOD}" != "rsync" ]] && [[ "${REMOTE_CODEBASE_METHOD}" != "git" ]]; then
 	echo "Only rsync and git codebase methods are supported. '${REMOTE_CODEBASE_METHOD}' method given. Aborting."
