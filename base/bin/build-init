@@ -96,7 +96,7 @@ if [[ "${secrets}" != "" ]]; then
 	echo "Passing build secrets to sandbox..."
 	for secret in $secrets
 	do
-		build-exec "fin config set $secret='${!secret}' --env=$AGENT_ENVIRONMENT >/dev/null"
+		build-exec "fin config set $secret='${!secret}' --env=${AGENT_ENVIRONMENT} >/dev/null"
 	done
 fi
 
