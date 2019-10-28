@@ -68,7 +68,7 @@ Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create 
 A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
 This key will be used to clone/push to git, run commands over SSH on a remote deployment environment, etc.
 
-`SSH_PORT`
+`DOCKSAL_HOST_SSH_PORT`
 
 The variable can be set if sandbox ssh service is running on a non-standard port (22)
 

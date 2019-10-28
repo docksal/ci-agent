@@ -185,9 +185,9 @@ build_env ()
 	export DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.nip.io}"
 	sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
 
-	# Use SSH_PORT if set, otherwise use default ssh port (22)
-	export SSH_PORT="${SSH_PORT:-22}"
-	sed -i "s/Port SSH_PORT/Port $SSH_PORT/g" $HOME/.ssh/config
+	# Use DOCKSAL_HOST_SSH_PORT if set, otherwise use default ssh port (22)
+	export DOCKSAL_HOST_SSH_PORT="${DOCKSAL_HOST_SSH_PORT:-22}"
+	sed -i "s/Port DOCKSAL_HOST_SSH_PORT/Port $DOCKSAL_HOST_SSH_PORT/g" $HOME/.ssh/config
 
 	# Set the sandbox user name in agent's SSH config
 	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config
