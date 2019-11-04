@@ -63,7 +63,7 @@ Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create 
 
 ### Optional
 
-`BUILD_AGENT`
+`BUILD_ENVIRONMENT`
 
 Used to set the environment built against. Defaults to `local`.
 
