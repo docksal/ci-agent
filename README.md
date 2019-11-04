@@ -63,6 +63,10 @@ Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create 
 
 ### Optional
 
+`BUILD_ENVIRONMENT`
+
+Used to set the environment built against. Defaults to `local`.
+
 `CI_SSH_KEY`
 
 A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
