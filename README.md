@@ -199,6 +199,28 @@ jobs:
 
 For a more advanced example see [config.yml](examples/.circleci/config.yml).
 
+### GitLab
+
+Here's the most basic configuration for GitLab. Save it into `.gitlab-ci.yml` in your project repo.
+
+```yaml
+stages:
+  - sandbox
+
+sandbox-launch:
+  stage: sandbox
+  image: docksal/ci-agent:base
+  script:
+    - export SANDBOX_DOMAIN=$CI_ENVIRONMENT_SLUG--$CI_PROJECT_NAME.$DOCKSAL_HOST
+    - source build-env
+    - sandbox-init
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG--$CI_PROJECT_NAME.$DOCKSAL_HOST
+```
+
+For a more advanced example see [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml).
+
 
 ## Build commands
 
