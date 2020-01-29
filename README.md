@@ -164,7 +164,7 @@ Other features and integrations are usually configured at the repo level. See be
 Here's the most basic configuration for Bitbucket Pipelines. Save it into `bitbucket-pipelines.yml` in your project repo.
 
 ```yaml
-image: docksal/ci-agent:php
+image: docksal/ci-agent:base
 
 pipelines:
   default:
@@ -186,7 +186,7 @@ jobs:
   build:
     working_directory: /home/agent/build
     docker:
-      - image: docksal/ci-agent:php
+      - image: docksal/ci-agent:base
     steps:
       - run:
           name: Configure agent environment
