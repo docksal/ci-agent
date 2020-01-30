@@ -39,6 +39,35 @@ safe_string ()
 	(sed -e 's/[^A-Za-z0-9]/-/g' | awk '{print tolower($0)}') <<< "$1"
 }
 
+# Parses repo URL and return a specific chunk
+# @url Git repo URL
+# @chunk one of: protocol, separator, hostname, service, owner, repo
+parse_repo_url ()
+{
+	url="$1"
+	chunk="$2"
+
+	# Credit: https://serverfault.com/questions/417241/extract-repository-name-from-github-url-in-bash/917253#917253
+	re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
+	# Parse the URL
+	if [[ ${url} =~ ${re} ]]; then
+		protocol=${BASH_REMATCH[1]}
+		separator=${BASH_REMATCH[2]}
+		hostname=${BASH_REMATCH[3]}
+		owner=${BASH_REMATCH[4]}
+		repo=${BASH_REMATCH[5]}
+
+		# Derived values
+		[[ "$hostname" == "github.com" ]] && service="github"
+		[[ "$hostname" == "bitbucket.org" ]] && service="bitbucket"
+	else
+		return 1
+	fi
+
+	# Return the requested chunk
+	if [[ "$chunk" != "" ]]; then echo "${!chunk}"; fi
+}
+
 # Initial build environment configuration
 build_env ()
 {
@@ -109,6 +138,21 @@ build_env ()
 		export BUILD_DIR="$CI_PROJECT_DIR"
 	fi
 
+	# Support for Jenkins Git SCM
+	if [[ "$JENKINS_URL" != "" ]]; then
+		echo-debug "Detected Jenkins build environment"
+		export JENKINS_CI="true"
+		export GIT_REPO_SERVICE=$(parse_repo_url "$GIT_URL" service)
+		export GIT_REPO_OWNER=$(parse_repo_url "$GIT_URL" owner)
+		export GIT_REPO_NAME=$(parse_repo_url "$GIT_URL" repo)
+		export GIT_REPO_URL="$GIT_URL"
+		export GIT_BRANCH_NAME="$GIT_BRANCH"
+		export GIT_COMMIT_HASH="$GIT_COMMIT"
+
+		export BUILD_ID="$BUILD_ID"
+		export BUILD_DIR="$WORKSPACE"
+	fi
+
 	# For debug purposes these variables can be set manually.
 	# If they are empty here, then we cannot proceed.
 	if [[ "$GIT_REPO_URL" == "" ]] || [[ "$GIT_BRANCH_NAME" == "" ]] || [[ "$GIT_COMMIT_HASH" == "" ]]; then
@@ -140,6 +184,10 @@ build_env ()
 	# Use DOCKSAL_HOST (domain name) if set, otherwise use DOCKSAL_HOST_IP (IP) with nip.io
 	export DOCKSAL_HOST="${DOCKSAL_HOST:-$DOCKSAL_HOST_IP.nip.io}"
 	sed -i "s/HostName DOCKSAL_HOST/HostName $DOCKSAL_HOST/g" $HOME/.ssh/config
+
+	# Use DOCKSAL_HOST_SSH_PORT if set, otherwise use default ssh port (22)
+	export DOCKSAL_HOST_SSH_PORT="${DOCKSAL_HOST_SSH_PORT:-22}"
+	sed -i "s/# Port DOCKSAL_HOST_SSH_PORT/Port $DOCKSAL_HOST_SSH_PORT/g" $HOME/.ssh/config
 
 	# Set the sandbox user name in agent's SSH config
 	sed -i "s/User DOCKSAL_HOST_USER/User $DOCKSAL_HOST_USER/g" $HOME/.ssh/config

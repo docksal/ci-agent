@@ -1,0 +1,33 @@
+stages:
+  - sandbox
+
+# Launch sandboxes for new branches
+sandbox-launch:
+  stage: sandbox
+  image: docksal/ci-agent:1.7-base
+  script:
+    # Set SANDBOX_DOMAIN manually using GitLab CI Environments variables
+    - export SANDBOX_DOMAIN=$CI_ENVIRONMENT_SLUG--$CI_PROJECT_NAME.$DOCKSAL_HOST
+    - source build-env
+    - sandbox-init
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG--$CI_PROJECT_NAME.$DOCKSAL_HOST
+  only:
+    - branches
+  except:
+    - master
+
+# Remove sandboxes when environments are deleted in GitLab (branch deleted or environment deleted manually)
+sandbox-remove:
+  stage: sandbox
+  image: docksal/ci-agent:1.7-base
+  variables:
+    GIT_STRATEGY: none  # Tell GitLab runner to not try checkout code of a deleted branch
+  script:
+    - source build-env
+    - build-exec "fin project remove -f; rm -rf $REMOTE_BUILD_DIR"
+  when: manual
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    action: stop

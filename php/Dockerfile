@@ -14,6 +14,7 @@ RUN set -xe; \
 		php7-mbstring \
 		php7-openssl \
 		php7-phar \
+		php7-posix \
 		php7-simplexml \
 		php7-tokenizer \
 		php7-xml \

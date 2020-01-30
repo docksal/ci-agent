@@ -51,7 +51,7 @@ have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
-The address of the remote Docksal host, which is hosting sandboxes. Configure one of the other.  
+The address of the remote Docksal host, which is hosting sandboxes. Configure one or the other.  
 If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
 If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard domain names for sandboxes. 
 
@@ -59,19 +59,27 @@ If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard dom
 
 A base64 encoded private SSH key, used to access the remote Docksal host.
 
-Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key, while on Linux, in WSL on Windows 10 and in Babun `cat /path/to/<private_key_file> | base64 -w 0` should be used to avoid output wrapping of the `base64` command).
+Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key, while on Linux and in WSL on Windows 10 `cat /path/to/<private_key_file> | base64 -w 0` should be used to avoid output wrapping of the `base64` command).
 
 ### Optional
+
+`BUILD_ENVIRONMENT`
+
+Used to set the environment built against. Defaults to `local`.
 
 `CI_SSH_KEY`
 
 A base64 encoded private SSH key, used by default for all hosts (set as `Host *` in `~/.ssh/config`).
 This key will be used to clone/push to git, run commands over SSH on a remote deployment environment, etc.
 
+`DOCKSAL_HOST_SSH_PORT`
+
+The variable can be set if sandbox ssh service is running on a non-standard port (22)
+
 `DOCKSAL_DOMAIN`
 
 Can be used to set the base URL for sandbox builds (defaults to `DOCKSAL_HOST` if not set), individually from `DOCKSAL_HOST`.  
-This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is different from the `DOCKSAL_HOST`)
+This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is different from the `DOCKSAL_HOST`).
 
 `DOCKSAL_HOST_USER`
 
@@ -156,7 +164,7 @@ Other features and integrations are usually configured at the repo level. See be
 Here's the most basic configuration for Bitbucket Pipelines. Save it into `bitbucket-pipelines.yml` in your project repo.
 
 ```yaml
-image: docksal/ci-agent:php
+image: docksal/ci-agent:base
 
 pipelines:
   default:
@@ -178,7 +186,7 @@ jobs:
   build:
     working_directory: /home/agent/build
     docker:
-      - image: docksal/ci-agent:php
+      - image: docksal/ci-agent:base
     steps:
       - run:
           name: Configure agent environment
@@ -190,6 +198,28 @@ jobs:
 ```
 
 For a more advanced example see [config.yml](examples/.circleci/config.yml).
+
+### GitLab
+
+Here's the most basic configuration for GitLab. Save it into `.gitlab-ci.yml` in your project repo.
+
+```yaml
+stages:
+  - sandbox
+
+sandbox-launch:
+  stage: sandbox
+  image: docksal/ci-agent:base
+  script:
+    - export SANDBOX_DOMAIN=$CI_ENVIRONMENT_SLUG--$CI_PROJECT_NAME.$DOCKSAL_HOST
+    - source build-env
+    - sandbox-init
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG--$CI_PROJECT_NAME.$DOCKSAL_HOST
+```
+
+For a more advanced example see [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml).
 
 
 ## Build commands
@@ -205,7 +235,7 @@ For a complete list of built-in commands see [base/bin](base/bin).
 
 ## Build environment variables
 
-The following variables are derived from the respective Bitbucket Pipelines, Circle CI and GitLab CI build variables. 
+The following variables are derived from the respective Bitbucket Pipelines, Circle CI, and GitLab CI build variables. 
 
 - `GIT_REPO_OWNER` - git repo machine owner/slug name
 - `GIT_REPO_NAME` - git repo machine name
@@ -251,7 +281,7 @@ For CircleCI, it is also possible to enable posting the sandbox URL as a comment
 
 `build-notify <pending|success|failure>`
 
-Place the triggers right before and right after `fin init` call in your build script, e.g.
+Place the triggers right before and right after `fin init` call in your build script, e.g.,
 
 ```bash
 build-notify pending 
@@ -272,11 +302,11 @@ It can be used for notification purposes when a build is started, completed, fai
 `SLACK_WEBHOOK_URL`
 
 The Incoming Webhook integration URL from Slack, 
-e.g. `SLACK_WEBHOOK_URL https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXxxXXXXxxXXXXxxXXXXxxXX`
+e.g., `SLACK_WEBHOOK_URL https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXxxXXXXxxXXXXxxXXXXxxXX`
 
 `SLACK_CHANNEL`
 
-A public or private channel in Slack, e.g. `SLACK_CHANNEL #project-name-bots`
+A public or private channel in Slack, e.g., `SLACK_CHANNEL #project-name-bots`
 
 `SLACK_USER`
 
