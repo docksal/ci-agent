@@ -431,3 +431,7 @@ REMOTE_BUILD_DIR_CLEANUP=0
 
 Such environments can be used for non-critical production-ish workloads, whenever an on-demand delayed start 
 (5-10s delay) is not a concern.
+
+## Feature: Secrets in environment variables
+
+It is best security practice not to store secrets such as API keys in a code repository. Many CI systems already have the ability to set such environment variables during the build process. Any environment variables set at build time whose name starts with `SECRET_` will be forwarded as-is to the built environment.
