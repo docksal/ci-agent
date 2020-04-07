@@ -10,8 +10,11 @@ hash
 json
 libxml
 mbstring
+mysqlnd
 openssl
 pcre
+PDO
+pdo_mysql
 Phar
 posix
 readline
