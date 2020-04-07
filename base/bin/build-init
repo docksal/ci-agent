@@ -94,13 +94,11 @@ fi
 # inject each variable/value pair into docksal-$BUILD_ENVIRONMENT.env. This allows you to
 # add secure variables to your project's repository that can be injected into
 # each sandbox environment.
-secrets="$(compgen -A variable | grep '^SECRET_')" || true
-if [[ "${secrets}" != "" ]]; then
+if secrets=$(compgen -v | grep '^SECRET_'); then
 	echo "Passing build secrets to sandbox..."
-	for secret in "$secrets"
-	do
-		build-exec "fin config set $secret='${!secret}' --env=${BUILD_ENVIRONMENT}"
-	done
+	while read secret; do
+		build-exec "fin config set ${secret}='${!secret}' --env=${BUILD_ENVIRONMENT}"
+	done <<< "${secrets}"
 fi
 
 set +e
