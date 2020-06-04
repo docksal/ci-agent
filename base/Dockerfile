@@ -17,7 +17,7 @@ RUN set -xe; \
 
 ARG DOCKER_VERSION=18.09.2
 ARG DOCKER_COMPOSE_VERSION=1.23.2
-ARG MINIO_VERSION="RELEASE.2020-01-13T22-49-03Z"
+ARG MINIO_VERSION="RELEASE.2020-05-28T23-43-36Z"
 RUN set -xe; \
 	# Install docker cli
 	curl -fsSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz"; \
