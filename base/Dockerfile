@@ -17,6 +17,7 @@ RUN set -xe; \
 
 ARG DOCKER_VERSION=18.09.2
 ARG DOCKER_COMPOSE_VERSION=1.23.2
+ARG MINIO_VERSION="RELEASE.2020-01-13T22-49-03Z"
 RUN set -xe; \
 	# Install docker cli
 	curl -fsSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz"; \
@@ -26,7 +27,7 @@ RUN set -xe; \
 	pip install "docker-compose==${DOCKER_COMPOSE_VERSION}" >/dev/null; \
 	docker-compose --version; \
 	# Install minio client (mc)
-	curl -fsSL https://dl.minio.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc; \
+	curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/archive/mc.${MINIO_VERSION} -o /usr/local/bin/mc; \
 	chmod +x /usr/local/bin/mc
 
 ENV AGENT_USER=agent
