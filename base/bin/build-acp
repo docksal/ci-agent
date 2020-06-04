@@ -54,7 +54,7 @@ mc mb "s3/${ARTIFACTS_BUCKET_NAME}"
 mc mirror --overwrite --remove ${source} ${destination}
 # Set read-only permissions on BUCKET_PATH
 # Access is possible only if BUCKET_PATH is known (parent bucket stays private => XML listing of bucket objects disabled)
-mc policy download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
+mc policy set download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
 
 echo "Build artifacts upload completed:"
 echo "${ARTIFACTS_URL}"
