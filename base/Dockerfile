@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.13
 
 RUN set -xe; \
 	apk add --update --no-cache \
@@ -15,9 +15,9 @@ RUN set -xe; \
 	; \
 	rm -rf /var/cache/apk/*;
 
-ARG DOCKER_VERSION=18.09.2
-ARG DOCKER_COMPOSE_VERSION=1.23.2
-ARG MINIO_VERSION="RELEASE.2020-05-28T23-43-36Z"
+ARG DOCKER_VERSION=20.10.5
+ARG DOCKER_COMPOSE_VERSION=1.28.5
+ARG MINIO_VERSION="RELEASE.2021-04-06T23-11-00Z"
 RUN set -xe; \
 	# Install docker cli
 	curl -fsSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz"; \
