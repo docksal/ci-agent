@@ -228,12 +228,14 @@ ssh_init ()
 	if [[ "$CI_SSH_KEY" != "" ]]; then
 		echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa
 		chmod 0600 $HOME/.ssh/id_rsa
+		ssh-keygen -y -f $HOME/.ssh/id_rsa > $HOME/.ssh/id_rsa.pub
 	fi
 
 	# Docksal Sandbox server key
 	if [[ "$DOCKSAL_HOST_SSH_KEY" != "" ]]; then
 		echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa
 		chmod 0600 $HOME/.ssh/docksal_host_id_rsa
+		ssh-keygen -y -f $HOME/.ssh/docksal_host_id_rsa > $HOME/.ssh/docksal_host_id_rsa.pub
 	fi
 
 	# Initialize ssh-agent and load the default key ($HOME/.ssh/id_rsa)
