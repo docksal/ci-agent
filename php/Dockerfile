@@ -25,10 +25,10 @@ RUN set -xe; \
 		php7-zlib; \
 	rm -rf /var/cache/apk/*;
 
-ENV COMPOSER_VERSION=1.6.3
-ENV DRUSH_VERSION 8.1.16
-ENV DRUPAL_CONSOLE_VERSION 1.7.0
-ENV WPCLI_VERSION 1.5.0
+ENV COMPOSER_VERSION=1.10.21 \
+	DRUSH_VERSION=8.4.8 \
+	DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.7 \
+	WPCLI_VERSION=2.4.0
 RUN set -xe; \
 	# Composer
 	curl -sSL "https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer; \
