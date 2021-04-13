@@ -25,21 +25,21 @@ RUN set -xe; \
 		php7-zlib; \
 	rm -rf /var/cache/apk/*;
 
-ENV COMPOSER_VERSION=1.6.3
-ENV DRUSH_VERSION 8.1.16
-ENV DRUPAL_CONSOLE_VERSION 1.7.0
-ENV WPCLI_VERSION 1.5.0
+ENV COMPOSER_VERSION=1.10.21 \
+	DRUSH_VERSION=8.4.8 \
+	DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.7 \
+	WPCLI_VERSION=2.4.0
 RUN set -xe; \
 	# Composer
-	curl -sSL "https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer; \
+	curl -fsSL "https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer; \
 	# Drush 8 (default)
-	curl -sSL "https://github.com/drush-ops/drush/releases/download/${DRUSH_VERSION}/drush.phar" -o /usr/local/bin/drush; \
+	curl -fsSL "https://github.com/drush-ops/drush/releases/download/${DRUSH_VERSION}/drush.phar" -o /usr/local/bin/drush; \
 	# Drupal Console
-	curl -sSL "https://github.com/hechoendrupal/drupal-console-launcher/releases/download/${DRUPAL_CONSOLE_VERSION}/drupal.phar" -o /usr/local/bin/drupal; \
+	curl -fsSL "https://github.com/hechoendrupal/drupal-console-launcher/releases/download/${DRUPAL_CONSOLE_LAUNCHER_VERSION}/drupal.phar" -o /usr/local/bin/drupal; \
 	# Install wp-cli
-	curl -sSL "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar" -o /usr/local/bin/wp; \
-	# Make all binaries executable
-	chmod +x /usr/local/bin/*;
+	curl -fsSL "https://github.com/wp-cli/wp-cli/releases/download/v${WPCLI_VERSION}/wp-cli-${WPCLI_VERSION}.phar" -o /usr/local/bin/wp; \
+	# Make all downloaded binaries executable in one shot
+	(cd /usr/local/bin && chmod +x composer drush drupal wp);
 
 # Switch back to user
 USER $AGENT_USER
