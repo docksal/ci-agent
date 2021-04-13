@@ -75,11 +75,6 @@ jobs:
             ghcr.io/${{ env.IMAGE }}
           tag-sha: true # add git short SHA as Docker tag
       -
-        # Generate image meta information
-        name: Docker image tags
-        id: docker_tags
-        run: make tags
-      -
         # Build for local use
         name: Build image (base)
         run: make build FLAVOR=base
@@ -131,18 +126,28 @@ jobs:
         run: make test FLAVOR=php
 
       -
+        # Generate image meta information
+        name: Docker image tags (base)
+        id: docker_tags_base
+        run: make tags FLAVOR=base
+      -
+        # Generate image meta information
+        name: Docker image tags (php)
+        id: docker_tags_php
+        run: make tags FLAVOR=php
+      -
         # Push final image to the registry
         # This will pick-up the build cache from the local build step
         name: Push image (base)
         # Don't run if the list of tags is empty
         # Note: using tags from docker_tags (custom)
-        if: ${{ steps.docker_tags.outputs.tags != '' }}
+        if: ${{ steps.docker_tags_base.outputs.tags != '' }}
         uses: docker/build-push-action@v2
         with:
           context: base
           file: base/Dockerfile
           #platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.docker_tags.outputs.tags }} # Note: using tags from docker_tags (custom script)
+          tags: ${{ steps.docker_tags_base.outputs.tags }} # Note: using tags from docker_tags (custom script)
           labels: ${{ steps.docker_meta.outputs.labels }} # Note: using lables from docker_meta
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs
           cache-to: type=inline # Write the cache metadata into the image configuration
@@ -153,13 +158,13 @@ jobs:
         name: Push image (php)
         # Don't run if the list of tags is empty
         # Note: using tags from docker_tags (custom)
-        if: ${{ steps.docker_tags.outputs.tags != '' }}
+        if: ${{ steps.docker_tags_php.outputs.tags != '' }}
         uses: docker/build-push-action@v2
         with:
           context: php
           file: php/Dockerfile
           #platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.docker_tags.outputs.tags }} # Note: using tags from docker_tags (custom script)
+          tags: ${{ steps.docker_tags_php.outputs.tags }} # Note: using tags from docker_tags (custom script)
           labels: ${{ steps.docker_meta.outputs.labels }} # Note: using lables from docker_meta
           push: ${{ github.event_name != 'pull_request' }} # Don't push for PRs
           cache-to: type=inline # Write the cache metadata into the image configuration
