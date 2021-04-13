@@ -28,7 +28,7 @@ RUN set -xe; \
 	rm -rf /var/cache/apk/*;
 
 # Install minio client (mc)
-ARG MINIO_VERSION="RELEASE.2021-04-06T23-11-00Z"
+ARG MINIO_VERSION="RELEASE.2021-03-23T05-46-11Z"
 RUN set -xe; \
 	curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/archive/mc.${MINIO_VERSION} -o /usr/local/bin/mc; \
 	chmod +x /usr/local/bin/mc
