@@ -1,20 +1,20 @@
 -include env_make
 
 IMAGE ?= docksal/ci-agent
-VERSION ?= base
-BUILD_TAG ?= $(VERSION)-build
+FLAVOR ?= base
+BUILD_TAG ?= $(FLAVOR)-build
 
-NAME = docksal-ci-agent-$(VERSION)
+NAME = docksal-ci-agent-$(FLAVOR)
 
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: build test push shell run start stop logs clean release
 
 build:
-	docker build -t $(IMAGE):$(BUILD_TAG) ./$(VERSION)
+	docker build -t $(IMAGE):$(BUILD_TAG) ./$(FLAVOR)
 
 test:
-	IMAGE=$(IMAGE) BUILD_TAG=$(BUILD_TAG) NAME=$(NAME) ./tests/$(VERSION).bats
+	IMAGE=$(IMAGE) BUILD_TAG=$(BUILD_TAG) NAME=$(NAME) ./tests/$(FLAVOR).bats
 
 push:
 	docker push $(IMAGE):$(BUILD_TAG)
