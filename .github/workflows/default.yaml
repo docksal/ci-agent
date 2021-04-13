@@ -82,11 +82,11 @@ jobs:
       -
         # Build for local use
         name: Build image (base)
-        run: make build VERSION=base
+        run: make build FLAVOR=base
       -
         # Build for local use
         name: Build image (php)
-        run: make build VERSION=php
+        run: make build FLAVOR=php
       -
         # Print image info
         name: Docker image info
@@ -125,10 +125,10 @@ jobs:
       # Tests
       -
         name: Test image (base)
-        run: make test VERSION=base
+        run: make test FLAVOR=base
       -
         name: Test image (php)
-        run: make test VERSION=php
+        run: make test FLAVOR=php
 
       -
         # Push final image to the registry
