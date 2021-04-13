@@ -1,5 +1,6 @@
-FROM alpine:3.9
+FROM alpine:3.13
 
+# Install basic pacakges
 RUN set -xe; \
 	apk add --update --no-cache \
 		bash \
@@ -8,25 +9,27 @@ RUN set -xe; \
 		jq \
 		make \
 		openssh \
-		py2-pip \
 		rsync \
 		sudo \
 		patch \
 	; \
 	rm -rf /var/cache/apk/*;
 
-ARG DOCKER_VERSION=18.09.2
-ARG DOCKER_COMPOSE_VERSION=1.23.2
-ARG MINIO_VERSION="RELEASE.2020-05-28T23-43-36Z"
+# Install docker packages
+# Lookup available version for Alpine at
+# https://pkgs.alpinelinux.org/packages?name=docker*&branch=v3.13&arch=x86_64
+ARG DOCKER_VERSION=20.10.3-r1
+ARG DOCKER_COMPOSE_VERSION=1.27.4-r0
 RUN set -xe; \
-	# Install docker cli
-	curl -fsSL -O "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz"; \
-	tar zxf docker-${DOCKER_VERSION}.tgz && mv docker/docker /usr/local/bin && rm -rf docker-${DOCKER_VERSION}*; \
-	docker --version; \
-	# Install docker-compose cli (has to be installed via pip on Alpine)
-	pip install "docker-compose==${DOCKER_COMPOSE_VERSION}" >/dev/null; \
-	docker-compose --version; \
-	# Install minio client (mc)
+	apk add --update --no-cache \
+		docker-cli=${DOCKER_VERSION} \
+		docker-compose=${DOCKER_COMPOSE_VERSION} \
+	; \
+	rm -rf /var/cache/apk/*;
+
+# Install minio client (mc)
+ARG MINIO_VERSION="RELEASE.2021-03-23T05-46-11Z"
+RUN set -xe; \
 	curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/archive/mc.${MINIO_VERSION} -o /usr/local/bin/mc; \
 	chmod +x /usr/local/bin/mc
 
