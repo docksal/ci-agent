@@ -18,7 +18,6 @@ DEBUG=${DEBUG:-0}  # `DEBUG=1 build-env` to run with debugging turned ON
 DOCKER_HOST_TUNNEL=localhost:2374
 GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
 GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
-REMOTE_BUILD_DIR_CLEANUP=${REMOTE_BUILD_DIR_CLEANUP:-1} # Default to re-initializing environment.
 
 # These are used to generate the sandbox sub-domain (branch-project.example.com)
 # There is a limit of 63 characters for any part of the domain name.
@@ -229,12 +228,14 @@ ssh_init ()
 	if [[ "$CI_SSH_KEY" != "" ]]; then
 		echo "$CI_SSH_KEY" | base64 -d > $HOME/.ssh/id_rsa
 		chmod 0600 $HOME/.ssh/id_rsa
+		ssh-keygen -y -f $HOME/.ssh/id_rsa > $HOME/.ssh/id_rsa.pub
 	fi
 
 	# Docksal Sandbox server key
 	if [[ "$DOCKSAL_HOST_SSH_KEY" != "" ]]; then
 		echo "$DOCKSAL_HOST_SSH_KEY" | base64 -d > $HOME/.ssh/docksal_host_id_rsa
 		chmod 0600 $HOME/.ssh/docksal_host_id_rsa
+		ssh-keygen -y -f $HOME/.ssh/docksal_host_id_rsa > $HOME/.ssh/docksal_host_id_rsa.pub
 	fi
 
 	# Initialize ssh-agent and load the default key ($HOME/.ssh/id_rsa)

@@ -4,6 +4,7 @@
 
 # Set script-specific variables.
 BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT:-local}
+REMOTE_BUILD_DIR_CLEANUP=${REMOTE_BUILD_DIR_CLEANUP:-1} # Default to re-initializing environment.
 
 # Exit if using an invalid codebase method.
 if [[ "${REMOTE_CODEBASE_METHOD}" != "rsync" ]] && [[ "${REMOTE_CODEBASE_METHOD}" != "git" ]]; then

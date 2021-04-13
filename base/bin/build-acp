@@ -3,10 +3,13 @@
 # Build Artifact Copy (build-acp)
 # Copy build artifacts into S3
 #
-# Usage: build-acp <source>
+# Usage: build-acp <source> [<subpath>]
 
 set -e # Abort if anything fails
 #set -x # Echo commands
+
+## Enable extended globbing features
+shopt -s extglob
 
 if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] || [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]] || [[ "${ARTIFACTS_BUCKET_NAME}" == "" ]]; then
 	echo "Cannot upload artifacts."
@@ -14,28 +17,32 @@ if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] || [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]] 
 	exit 1
 fi
 
-# Configure ARTIFACTS_BASE_URL, unless it has been already defined
-ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL:-"https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com"}
-# Configure ARTIFACTS_BUCKET_PATH, unless it has been already defined
-ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH:-"${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"}
+# Configure ARTIFACTS_BASE_URL, unless it has been already defined (trim any trailing slashes)
+ARTIFACTS_BASE_URL=${ARTIFACTS_BASE_URL%%+(/):-"https://${ARTIFACTS_BUCKET_NAME}.s3.amazonaws.com"}
+# Configure ARTIFACTS_BUCKET_PATH, unless it has been already defined (trim any trailing slashes)
+ARTIFACTS_BUCKET_PATH=${ARTIFACTS_BUCKET_PATH%%+(/):-"${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}"}
 # Configure ARTIFACTS_URL, unless it has been already defined
 # By default expecting index.html as the default entry point into the bucket/path
 ARTIFACTS_URL=${ARTIFACTS_URL:-"${ARTIFACTS_BASE_URL}/${ARTIFACTS_BUCKET_PATH}/index.html"}
 
-# Sync source locally
+# Sync source (local)
 source=${1}
-# Sync destination on S3
+# Sync destination (S3)
 destination="s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
-# Allow specifying a subpath within the destination path
-if [[ "${2}" != "" ]]; then destination="${destination}/${2}"; fi
+# Allow specifying a subpath within destination (trim any trailing slashes)
+if [[ "${2}" != "" ]]; then subpath="${2%%+(/)}/"; fi
+
+# Ensure paths ends with a single trailing slash
+# ${VAR%%+(/)} strips out all trailing slashes (requires extglob enabled), then we add a single trailing slash back
+ARTIFACTS_BUCKET_PATH="${ARTIFACTS_BUCKET_PATH%%+(/)}/"
+destination="${destination%%+(/)}/"
 
 # Print configuration for debugging purposes
-echo "Configuration: "
+echo "Configuration (normalized): "
 echo "source='${source}'"
 echo "destination='${destination}'"
-echo "ARTIFACTS_BASE_URL='${ARTIFACTS_BASE_URL}'"
-echo "ARTIFACTS_BUCKET_PATH='${ARTIFACTS_BUCKET_PATH}'"
-echo "ARTIFACTS_URL='${ARTIFACTS_URL}'"
+echo "subpath='${subpath}'"
+echo "url='${ARTIFACTS_URL}'"
 
 if [[ "${source}" == "" ]]; then
 	echo "Error: Source path missing."
@@ -46,15 +53,21 @@ fi
 # AWS API keys must be set in the build settings
 mc config host add s3 https://s3.amazonaws.com ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY}
 
+set -x # Debug ON
+
 # Create bucket if it does not exist
 mc mb "s3/${ARTIFACTS_BUCKET_NAME}"
 # Upload artifact into the bucket
 # TODO: figure out how to skip timestemp checking. Maybe use aws-cli instead on the minio client?
 # Looks like mirror does not have any benefit here over cp. Files in build have newer timestamps and are always copied.
-mc mirror --overwrite --remove ${source} ${destination}
-# Set read-only permissions on BUCKET_PATH
+mc mirror --overwrite --remove ${source} ${destination}${subpath}
+# Set download (read-only) policy on BUCKET_PATH
 # Access is possible only if BUCKET_PATH is known (parent bucket stays private => XML listing of bucket objects disabled)
-mc policy download "s3/${ARTIFACTS_BUCKET_NAME}/${ARTIFACTS_BUCKET_PATH}"
+# Note: ${destination} is used here instead of ${destination}${subpath} to minimize the number of S3 policy rules when
+# multiple subpaths are used within the same destination.
+mc policy set download ${destination}
+
+set +x # Debug OFF
 
 echo "Build artifacts upload completed:"
 echo "${ARTIFACTS_URL}"
