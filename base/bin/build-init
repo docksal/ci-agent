@@ -40,6 +40,11 @@ else
 	echo "Cleanup is preserving the build environment."
 fi
 
+# Ensure build directory, if it already exists, is owned by the build user.
+if [[ $remote_build_dir_exists_check_result != 0 ]]; then
+	ssh docker-host "sudo chown -R ${DOCKSAL_HOST_USER}:${DOCKSAL_HOST_USER} ${REMOTE_BUILD_DIR} 2>/dev/null"
+fi
+
 # Note: build-exec = ssh docker-host "cd $REMOTE_BUILD_DIR && ($@)"
 
 # Remote codebase initialization method. Either 'rsync' (default) or 'git'
