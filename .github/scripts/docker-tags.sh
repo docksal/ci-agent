@@ -6,10 +6,12 @@
 #   master      => image:[version][-][flavor]
 #   semver tag  => image:[version-]major.minor[-flavor]
 
+# Registries
 declare -a registryArr
 registryArr+=("docker.io") # Docker Hub
 registryArr+=("ghcr.io") # GitHub Container Registry
 
+# Image tags
 declare -a imageTagArr
 
 # Join arguments with hyphen (-) as a delimiter
