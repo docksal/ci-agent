@@ -156,6 +156,25 @@ build_env ()
 		export BUILD_DIR="$WORKSPACE"
 	fi
 
+	# Support for GitHub Actions
+	if [[ "$GITHUB_ACTIONS" != "" ]]; then
+	  echo-debug "Detected Github Actions build environment"
+	  export GIT_REPO_OWNER="$GITHUB_REPOSITORY_OWNER"
+	  export GIT_REPO_NAME="$GITHUB_REPOSITORY"
+	  export GIT_REPO_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+	  export GIT_BRANCH_NAME="$GITHUB_REF"
+	  export GIT_COMMIT_HASH="$GITHUB_SHA"
+
+	  if [[ "$GITHUB_SERVER_URL" == *"github.com"* ]]; then
+	    export GIT_REPO_SERVICE="github"
+	    # Figure out the pull request number
+	    export GIT_PR_NUMBER=${GITHUB_REF##*/}
+	  fi
+
+	  export BUILD_ID="$GITHUB_RUN_NUMBER"
+	  export BUILD_DIR="$GITHUB_WORKSPACE"
+	fi
+
 	# For debug purposes these variables can be set manually.
 	# If they are empty here, then we cannot proceed.
 	if [[ "$GIT_REPO_URL" == "" ]] || [[ "$GIT_BRANCH_NAME" == "" ]] || [[ "$GIT_COMMIT_HASH" == "" ]]; then
