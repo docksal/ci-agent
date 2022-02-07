@@ -25,7 +25,7 @@ RUN set -xe; \
 		php7-zlib; \
 	rm -rf /var/cache/apk/*;
 
-ENV COMPOSER_VERSION=2.1.3 \
+ENV COMPOSER_VERSION=2.2.6 \
 	DRUSH_VERSION=8.4.8 \
 	DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.7 \
 	WPCLI_VERSION=2.4.0
