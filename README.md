@@ -221,6 +221,37 @@ sandbox-launch:
 
 For a more advanced example see [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml).
 
+### Github Actions
+
+Here's the most basic configuration for Github Actions. Save it into `.github/workflows/sandbox.yml` in your project repo.
+
+You might need to add your deploy key to Github Actions for cloning the codebase.
+
+```yaml
+name: Docksal sandbox
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: docksal/ci-agent:base
+    env:
+      CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
+      DOCKSAL_HOST_IP: ${{ secrets.DOCKSAL_HOST_IP }}
+      DOCKSAL_HOST_SSH_KEY: ${{ secrets.DOCKSAL_HOST_SSH_KEY }}
+      REMOTE_CODEBASE_METHOD: ${{ secrets.REMOTE_CODEBASE_METHOD }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Build sandbox
+        run: |
+          source build-env
+          sandbox-init
+```
+
+For a more advanced example see [.sandbox.yml](examples/.github/workflows/sandbox.yml).
 
 ## Build commands
 
