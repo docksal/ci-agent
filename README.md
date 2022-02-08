@@ -226,7 +226,7 @@ For a more advanced example see [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml)
 
 Here's the most basic configuration for Github Actions. Save it into `.github/workflows/sandbox.yml` in your project repo.
 
-You might need to add your deploy key to Github Actions for cloning the codebase.
+You might need to add your ssh key to EC2 `/home/build-agent/.ssh` and the deploy(public) key to Github Actions for cloning the codebase via git.
 
 ```yaml
 name: Docksal sandbox
@@ -243,8 +243,8 @@ jobs:
       CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
       DOCKSAL_HOST_IP: ${{ secrets.DOCKSAL_HOST_IP }}
       DOCKSAL_HOST_SSH_KEY: ${{ secrets.DOCKSAL_HOST_SSH_KEY }}
-      REMOTE_CODEBASE_METHOD: ${{ secrets.REMOTE_CODEBASE_METHOD }}
       GITHUB_TOKEN: ${{ github.token }}
+      REMOTE_CODEBASE_METHOD: git
     steps:
       - name: Build sandbox
         run: |

@@ -14,10 +14,10 @@ jobs:
       CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
       DOCKSAL_HOST_IP: ${{ secrets.DOCKSAL_HOST_IP }}
       DOCKSAL_HOST_SSH_KEY: ${{ secrets.DOCKSAL_HOST_SSH_KEY }}
-      REMOTE_CODEBASE_METHOD: ${{ secrets.REMOTE_CODEBASE_METHOD }}
       HTTP_USER: ${{ secrets.HTTP_USER }}
       HTTP_PASS: ${{ secrets.HTTP_PASS }}
       GITHUB_TOKEN: ${{ github.token }}
+      REMOTE_CODEBASE_METHOD: git
     steps:
       - name: Build sandbox
         run: |
