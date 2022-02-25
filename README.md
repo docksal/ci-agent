@@ -24,8 +24,8 @@ Use cases:
 - enhanced pull request review experience
 - demos
 
-Build status updates (and sandbox URLs) can be posted to Github and Bitbucket via respective build status APIs.
-URLs to sandbox environments can also be published to a Slack channel.
+Build status updates (and sandbox URLs) can be posted to Github and Bitbucket via respective build status APIs.  
+URLs to sandbox environments can also be published to a Slack channel.  
 
 
 ## Image variants and versions
@@ -52,8 +52,8 @@ have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
-The address of the sandbox server. Configure one or the other.
-If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.
+The address of the sandbox server. Configure one or the other.  
+If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
 If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard domain names for sandboxes.
 
 `DOCKSAL_HOST_SSH_KEY`
@@ -79,7 +79,7 @@ Can be used to override the SSH port of the sandbox server where the agent conne
 
 `DOCKSAL_DOMAIN`
 
-Can be used to set the base URL for sandbox builds (defaults to `DOCKSAL_HOST` if not set), individually from `DOCKSAL_HOST`.
+Can be used to set the base URL for sandbox builds (defaults to `DOCKSAL_HOST` if not set), individually from `DOCKSAL_HOST`.  
 This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is different from the `DOCKSAL_HOST`).
 
 `DOCKSAL_HOST_USER`
@@ -108,7 +108,7 @@ sandbox server.
 
 Whether or not the remote build directory is reset during the build. Only supported with `REMOTE_CODEBASE_METHOD=git`.
 
-Defaults to `1` which wipes the remote build directory and produces a "clean build".
+Defaults to `1` which wipes the remote build directory and produces a "clean build".    
 Set to `0` to produce "dirty builds", when file changes in the remote codebase should be preserved.
 
 Note: Switching `REMOTE_CODEBASE_METHOD` mode will result in a clean build.
@@ -132,13 +132,13 @@ This can be used for sandbox environments which need a custom (nice) domain name
 
 `GITHUB_TOKEN` and `BITBUCKET_TOKEN`
 
-Used for access to post sandbox URLs via build status API as well as comments on pull requests.
+Used for access to post sandbox URLs via build status API as well as comments on pull requests.  
 
-For Github, the token can be generated from the [user's account](https://github.com/settings/tokens).
+For Github, the token can be generated from the [user's account](https://github.com/settings/tokens).  
 Set access to "repo" (http://take.ms/nMqcW).
 
-For Bitbucket, the token can be generated from the user's settings. Instructions on creating an [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html).
-Set access to "Repositories: Write", "Pull requests: Write" (http://take.ms/98BG5).
+For Bitbucket, the token can be generated from the user's settings. Instructions on creating an [app password](https://confluence.atlassian.com/bitbucket/app-passwords-828781300.html).  
+Set access to "Repositories: Write", "Pull requests: Write" (http://take.ms/98BG5).  
 When storing the app password it is in the format: `USER:PASSWORD`.
 
 `GIT_USER_EMAIL`
@@ -151,7 +151,7 @@ The user's name to perform Git operations as. Defaults to `Docksal CI`
 
 `DOCKSAL_HOST_TUNNEL`
 
-If not empty, `localhost:2374` in the agent is mapped to `docker.sock` on the remote `DOCKSAL_HOST` via a secure SSH tunnel.
+If not empty, `localhost:2374` in the agent is mapped to `docker.sock` on the remote `DOCKSAL_HOST` via a secure SSH tunnel.  
 The agent can then run `docker` commands against the remote `DOCKSAL_HOST`.
 
 
@@ -302,7 +302,7 @@ Set the following environment variables at the repo level:
 
 ## Feature: Build status notifications
 
-This integration allows the agent to post build status updates and sandbox URL via Github/Bitbucket build status API.
+This integration allows the agent to post build status updates and sandbox URL via Github/Bitbucket build status API.  
 For CircleCI, it is also possible to enable posting the sandbox URL as a comment in pull requests.
 
 ### Configuration
@@ -326,7 +326,7 @@ To enable posting sandbox URLs in comments on pull requests, do `export PR_COMME
 
 ## Feature: Slack notifications
 
-This integrations allows the agent to post messages to a given Slack channel.
+This integrations allows the agent to post messages to a given Slack channel.  
 It can be used for notification purposes when a build is started, completed, failed, etc.
 
 ### Configuration
@@ -363,7 +363,7 @@ Incoming Webhook integration won't work for private channels, which the owner of
 
 ## Feature: Build artifact storage
 
-Build artifacts can be stored in an AWS S3 bucket.
+Build artifacts can be stored in an AWS S3 bucket.  
 
 ### Configuration
 
@@ -384,14 +384,14 @@ To upload artifacts to the configured S3 bucket use the `build-acp` command.
 build-acp /source/path/
 ```
 
-There is no file browsing capability available for private S3 buckets.
-An `index.html` file is used as the directory index, however it has to be created/generated manually.
+There is no file browsing capability available for private S3 buckets.  
+An `index.html` file is used as the directory index, however it has to be created/generated manually.  
 When uploading a prepared artifacts folder with the `index.html` file in it, add a trailing slash to the source path to
 upload the contents of the source folder vs the folder itself.
 
 You can upload additional folders/files by running the command multiple times.
 
-The optional `destination` argument can be used to define a subdirectory at the destination in the bucket.
+The optional `destination` argument can be used to define a subdirectory at the destination in the bucket.  
 
 ```bash
 build-acp /source/path/ destination/path
@@ -421,7 +421,7 @@ The upload path is unique for each commit and is derived as follows:
 ${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}
 ```
 
-In certain cases you may want to store build artifacts per branch instead of per commit.
+In certain cases you may want to store build artifacts per branch instead of per commit.  
 To do this, override the `ARTIFACTS_BUCKET_PATH` variable before calling the `build-acp` command:
 
 ```bash
