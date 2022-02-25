@@ -47,14 +47,14 @@ URLs to sandbox environments can also be published to a Slack channel.
 
 ### Required
 
-The following required variables are usually configured at the organization level. This way, all project repos will
+The following required variables are usually configured at the organization level. This way, all project repos will 
 have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
 The address of the sandbox server. Configure one or the other.  
 If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
-If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard domain names for sandboxes.
+If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard domain names for sandboxes. 
 
 `DOCKSAL_HOST_SSH_KEY`
 
@@ -88,7 +88,7 @@ The user name used as the build user on the sandbox server. Defaults to `build-a
 
 `REMOTE_BUILD_BASE`
 
-The default directory location on the sandbox server where the repositories should be cloned down to and built.
+The default directory location on the sandbox server where the repositories should be cloned down to and built. 
 Defaults to `/home/build-agent/builds`.
 
 `REMOTE_CODEBASE_METHOD`
@@ -97,11 +97,11 @@ Pick between `rsync` (default) and `git` for the codebase initialization method 
 
 The codebase is initialized on the sandbox server by the `sandbox-init` (or `build-init`) command.
 
-`git` - code is checkout on the sandbox server via git. The server must have access to checkout from the repo.
+`git` - code is checkout on the sandbox server via git. The server must have access to checkout from the repo. 
 Any build settings and necessary code manipulations must happen on the sandbox server using `build-exec` commands.
 
-`rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the
-build agent after running `build-env` and before running `sandbox-init` (or `build-init`), which pushes the code to the
+`rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the 
+build agent after running `build-env` and before running `sandbox-init` (or `build-init`), which pushes the code to the 
 sandbox server.
 
 `REMOTE_BUILD_DIR_CLEANUP`
@@ -111,7 +111,7 @@ Whether or not the remote build directory is reset during the build. Only suppor
 Defaults to `1` which wipes the remote build directory and produces a "clean build".    
 Set to `0` to produce "dirty builds", when file changes in the remote codebase should be preserved.
 
-Note: Switching `REMOTE_CODEBASE_METHOD` mode will result in a clean build.
+Note: Switching `REMOTE_CODEBASE_METHOD` mode will result in a clean build. 
 
 `SANDBOX_PERMANENT`
 
@@ -119,9 +119,9 @@ Set `SANDBOX_PERMANENT=true` to have a permanent sandbox provisioned.
 
 Permanent sandboxes are exempt from scheduled garbage collection on the sandbox server. They would still hibernate after
 the configured period of inactivity, but won't be removed from the server after becoming dangling.
-See https://github.com/docksal/service-vhost-proxy#advanced-proxy-configuration for more information.
+See https://github.com/docksal/service-vhost-proxy#advanced-proxy-configuration for more information. 
 
-This variable is usually set at the branch level in the build settings to designate a specific (one or multiple)
+This variable is usually set at the branch level in the build settings to designate a specific (one or multiple) 
 branch environments as permanent.
 
 `SANDBOX_DOMAIN`
@@ -262,12 +262,12 @@ For a complete list of built-in commands see [base/bin](base/bin).
 - `build-init`- initializes the sandbox codebase and settings on the sandbox server. Usage: `build-init`
 - `build-exec` - executes a shell command within the build directory on the sandbox server. Usage: `build-init pwd`
 - `build-notify` - see "Build status notifications" docs below
-- `sandbox-init` - a convenient shortcut to provision a basic sandbox. See [sandbox-init](base/bin/sandbox-init)
+- `sandbox-init` - a convenient shortcut to provision a basic sandbox. See [sandbox-init](base/bin/sandbox-init) 
 
 
 ## Build environment variables
 
-The following variables are derived from the respective Bitbucket Pipelines, Circle CI, GitLab CI, and Github Actions build variables.
+The following variables are derived from the respective Bitbucket Pipelines, Circle CI, GitLab CI, and Github Actions build variables. 
 
 - `GIT_REPO_OWNER` - git repo machine owner/slug name
 - `GIT_REPO_NAME` - git repo machine name
@@ -303,11 +303,11 @@ Set the following environment variables at the repo level:
 ## Feature: Build status notifications
 
 This integration allows the agent to post build status updates and sandbox URL via Github/Bitbucket build status API.  
-For CircleCI, it is also possible to enable posting the sandbox URL as a comment in pull requests.
+For CircleCI, it is also possible to enable posting the sandbox URL as a comment in pull requests. 
 
 ### Configuration
 
-`GITHUB_TOKEN` or `BITBUCKET_TOKEN` must be configured respectively (either globally or at the repo level).
+`GITHUB_TOKEN` or `BITBUCKET_TOKEN` must be configured respectively (either globally or at the repo level). 
 
 ### Usage
 
@@ -316,7 +316,7 @@ For CircleCI, it is also possible to enable posting the sandbox URL as a comment
 Place the triggers right before and right after `fin init` call in your build script, e.g.,
 
 ```bash
-build-notify pending
+build-notify pending 
 ssh docker-host "cd $REMOTE_BUILD_DIR && fin init" || ( build-notify failure && exit 1 )
 build-notify success
 ```
@@ -333,7 +333,7 @@ It can be used for notification purposes when a build is started, completed, fai
 
 `SLACK_WEBHOOK_URL`
 
-The Incoming Webhook integration URL from Slack,
+The Incoming Webhook integration URL from Slack, 
 e.g., `SLACK_WEBHOOK_URL https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXxxXXXXxxXXXXxxXXXXxxXX`
 
 `SLACK_CHANNEL`
@@ -354,7 +354,7 @@ The icon the message should use to accompany the message: Defaults to `:desktop_
 slack 'message' ['#channel'] ['webhook_url'] ['slack_user'] ['slack_icon']
 ```
 
-Channel and webhook url can be passed via environment variables. See above.
+Channel and webhook url can be passed via environment variables. See above. 
 
 ### Limitations
 
@@ -415,14 +415,14 @@ ARTIFACTS_BASE_URL = https://artifacts.example.com
 
 **Upload path**
 
-The upload path is unique for each commit and is derived as follows:
+The upload path is unique for each commit and is derived as follows: 
 
 ```bash
 ${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}-${GIT_COMMIT_HASH}
 ```
 
 In certain cases you may want to store build artifacts per branch instead of per commit.  
-To do this, override the `ARTIFACTS_BUCKET_PATH` variable before calling the `build-acp` command:
+To do this, override the `ARTIFACTS_BUCKET_PATH` variable before calling the `build-acp` command: 
 
 ```bash
 export ARTIFACTS_BUCKET_PATH="${REPO_NAME_SAFE}/${BRANCH_NAME_SAFE}"
@@ -431,22 +431,22 @@ build-acp my-artifacts/
 
 **Posting build artifact URLs to Bitbucket**
 
-If `BITBUCKET_TOKEN` is set, the URL to the artifacts will be posted back to Bitbucket via
+If `BITBUCKET_TOKEN` is set, the URL to the artifacts will be posted back to Bitbucket via 
 [Bitbucket Build Status API](https://blog.bitbucket.org/2015/11/18/introducing-the-build-status-api-for-bitbucket-cloud/).
 
 ### Security
 
-If a bucket does not exist, it will be created automatically (with no public access). Existing bucket access permissions
+If a bucket does not exist, it will be created automatically (with no public access). Existing bucket access permissions 
 are not automatically adjusted. It's up to you whether you want to keep them open or not.
 
-When artifacts are uploaded, the destination artifact folder in the bucket is set to be publicly accessible.
-Anyone with the direct link will be able to access the artifacts, but will not be able to browse the list of all
-available artifact folders in the bucket (so long as the bucket itself is set to be private).
+When artifacts are uploaded, the destination artifact folder in the bucket is set to be publicly accessible. 
+Anyone with the direct link will be able to access the artifacts, but will not be able to browse the list of all 
+available artifact folders in the bucket (so long as the bucket itself is set to be private). 
 
-The URL by default includes a git commit hash, which serves as an authentication token (the URL is impossible to guess).
+The URL by default includes a git commit hash, which serves as an authentication token (the URL is impossible to guess). 
 This provides a simple yet efficient level of security for artifacts.
 
-To add an additional level of security follow [this guide](https://medium.com/@lmakarov/serverless-password-protecting-a-static-website-in-an-aws-s3-bucket-bfaaa01b8666)
+To add an additional level of security follow [this guide](https://medium.com/@lmakarov/serverless-password-protecting-a-static-website-in-an-aws-s3-bucket-bfaaa01b8666) 
 to set up username/password access to S3 via CloudFront and Lambda@Edge.
 
 
@@ -459,9 +459,9 @@ SANDBOX_DOMAIN=<nice-domain>
 SANDBOX_PERMANENT=true
 REMOTE_CODEBASE_METHOD=git
 REMOTE_BUILD_DIR_CLEANUP=0
-```
+``` 
 
-Such environments can be used for non-critical production-ish workloads, whenever an on-demand delayed start
+Such environments can be used for non-critical production-ish workloads, whenever an on-demand delayed start 
 (5-10s delay) is not a concern.
 
 ## Feature: Secrets in environment variables
