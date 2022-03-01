@@ -7,6 +7,7 @@ Supported CI providers:
 - Bitbucket Pipelines (with build status integration)
 - CircleCI (with build status integration)
 - GitLab
+- Github Actions
 
 This image(s) is part of the [Docksal](http://docksal.io) image library.
 
@@ -221,6 +222,37 @@ sandbox-launch:
 
 For a more advanced example see [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml).
 
+### Github Actions
+
+Here's the most basic configuration for Github Actions. Save it into `.github/workflows/sandbox.yml` in your project repo.
+
+You might need to add your ssh key to EC2 `/home/build-agent/.ssh` and the deploy(public) key to Github Actions for cloning the codebase via git.
+
+```yaml
+name: Docksal sandbox
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: docksal/ci-agent:base
+    env:
+      CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
+      DOCKSAL_HOST_IP: ${{ secrets.DOCKSAL_HOST_IP }}
+      DOCKSAL_HOST_SSH_KEY: ${{ secrets.DOCKSAL_HOST_SSH_KEY }}
+      GITHUB_TOKEN: ${{ github.token }}
+      REMOTE_CODEBASE_METHOD: git
+    steps:
+      - name: Build sandbox
+        run: |
+          source build-env
+          sandbox-init
+```
+
+For a more advanced example see [.sandbox.yml](examples/.github/workflows/sandbox.yml).
 
 ## Build commands
 
@@ -235,7 +267,7 @@ For a complete list of built-in commands see [base/bin](base/bin).
 
 ## Build environment variables
 
-The following variables are derived from the respective Bitbucket Pipelines, Circle CI, and GitLab CI build variables. 
+The following variables are derived from the respective Bitbucket Pipelines, Circle CI, GitLab CI, and Github Actions build variables. 
 
 - `GIT_REPO_OWNER` - git repo machine owner/slug name
 - `GIT_REPO_NAME` - git repo machine name

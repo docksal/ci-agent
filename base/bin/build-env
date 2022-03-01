@@ -159,16 +159,16 @@ build_env ()
 	# Support for GitHub Actions
 	if [[ "$GITHUB_ACTIONS" != "" ]]; then
 	  echo-debug "Detected Github Actions build environment"
+	  export HOME=$AGENT_HOME
 	  export GIT_REPO_OWNER="$GITHUB_REPOSITORY_OWNER"
-	  export GIT_REPO_NAME="$GITHUB_REPOSITORY"
-	  export GIT_REPO_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-	  export GIT_BRANCH_NAME="$GITHUB_REF"
+	  export GIT_REPO_NAME="${GITHUB_REPOSITORY##*/}"
+	  export GIT_REPO_URL="git@github.com:$GIT_REPO_OWNER/$GIT_REPO_NAME.git"
+	  export GIT_BRANCH_NAME="$GITHUB_REF_NAME"
 	  export GIT_COMMIT_HASH="$GITHUB_SHA"
 
 	  if [[ "$GITHUB_SERVER_URL" == *"github.com"* ]]; then
 	    export GIT_REPO_SERVICE="github"
-	    # Figure out the pull request number
-	    export GIT_PR_NUMBER=${GITHUB_REF##*/}
+	    export GIT_PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
 	  fi
 
 	  export BUILD_ID="$GITHUB_RUN_NUMBER"
