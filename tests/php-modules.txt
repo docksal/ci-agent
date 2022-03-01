@@ -16,6 +16,7 @@ pcre
 PDO
 pdo_mysql
 Phar
+phpdbg_webhelper
 posix
 readline
 Reflection
