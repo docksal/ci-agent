@@ -1,4 +1,4 @@
-FROM alpine:3.15
+FROM alpine:3.15.3
 
 # Install basic pacakges
 RUN set -xe; \
@@ -18,7 +18,7 @@ RUN set -xe; \
 # Install docker packages
 # Lookup available version for Alpine at
 # https://pkgs.alpinelinux.org/packages?name=docker*&branch=v3.14&arch=x86_64
-ARG DOCKER_VERSION=20.10.11-r0
+ARG DOCKER_VERSION=20.10.14-r0
 ARG DOCKER_COMPOSE_VERSION=1.29.2-r1
 RUN set -xe; \
 	apk add --update --no-cache \
