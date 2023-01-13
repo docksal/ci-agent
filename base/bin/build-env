@@ -20,10 +20,11 @@ GIT_USER_EMAIL=${GIT_USER_EMAIL:-ci@docksal.io}
 GIT_USER_NAME=${GIT_USER_NAME:-Docksal CI}
 
 # These are used to generate the sandbox sub-domain (branch-project.example.com)
-# There is a limit of 63 characters for any part of the domain name.
-# Limit these to 50 combined to leave some space for sub-sub-domains (e.g. service-branch-project.example.com).
-BRANCH_NAME_LENGTH_LIMIT=30
-REPO_NAME_LENGTH_LIMIT=20
+# There is a limit of 63 characters for any part (label) of the domain name.
+# A sandbox URL is <service>--<branch>--<repo>.example.com
+# branch is 20 + 4 (for the md5 suffix), repo is 20, delimiters (--) are 2 + 2, which leaves 15 for service part
+BRANCH_NAME_LENGTH_LIMIT=${BRANCH_NAME_LENGTH_LIMIT:-20}
+REPO_NAME_LENGTH_LIMIT=${REPO_NAME_LENGTH_LIMIT:-20}
 
 # -------------------- Functions -------------------- #
 
