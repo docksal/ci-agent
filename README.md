@@ -1,19 +1,20 @@
 # CI agent Docker image for Docksal Sandboxes
 
-A thin agent used to provision Docksal Sandboxes on a remote Docker host.  
+An agent used to connect CI providers to a [Docksal Sandbox Server](https://github.com/docksal/sandbox-server).
 
 Supported CI providers:
 
 - Bitbucket Pipelines (with build status integration)
 - CircleCI (with build status integration)
 - GitLab
+- Github Actions
 
 This image(s) is part of the [Docksal](http://docksal.io) image library.
 
 
 ## Docksal Sandboxes
 
-Docksal Sandboxes are continuous integration environments powered by Docksal.  
+Docksal Sandboxes are continuous integration environments powered by Docksal and deployed to a [Docksal Sandbox Server](https://github.com/docksal/sandbox-server).
 They can be provisioned for any git branch and are feature-wise identical to project's local Docksal environment.
 
 Use cases:
@@ -51,13 +52,13 @@ have access to them. They can as well be configured at the repo level.
 
 `DOCKSAL_HOST` or `DOCKSAL_HOST_IP`
 
-The address of the remote Docksal host, which is hosting sandboxes. Configure one or the other.  
+The address of the sandbox server. Configure one or the other.  
 If using `DOCKSAL_HOST`, make sure the domain is configured as a wildcard DNS entry.  
 If using `DOCKSAL_HOST_IP`, the agent will use `nip.io` for dynamic wildcard domain names for sandboxes. 
 
 `DOCKSAL_HOST_SSH_KEY`
 
-A base64 encoded private SSH key, used to access the remote Docksal host.
+A base64 encoded private SSH key, used to access the sandbox server.
 
 Note: on macOS `cat /path/to/<private_key_file> | base64` can be used to create a base64 encoded string from a private SSH key, while on Linux and in WSL on Windows 10 `cat /path/to/<private_key_file> | base64 -w 0` should be used to avoid output wrapping of the `base64` command).
 
@@ -74,7 +75,7 @@ This key will be used to clone/push to git, run commands over SSH on a remote de
 
 `DOCKSAL_HOST_SSH_PORT`
 
-The variable can be set if sandbox ssh service is running on a non-standard port (22)
+Can be used to override the SSH port of the sandbox server where the agent connects (defaults to `22`).
 
 `DOCKSAL_DOMAIN`
 
@@ -83,12 +84,12 @@ This is useful when working with CDNs/ELBs/WAFs/etc (when `DOCKSAL_DOMAIN` is di
 
 `DOCKSAL_HOST_USER`
 
-The user's name that should have access to the remote Docksal host. Defaults to `build-agent`.
+The user name used as the build user on the sandbox server. Defaults to `build-agent`. Must have SSH access to the server.
 
 `REMOTE_BUILD_BASE`
 
-The default directory location on the remote server where the repositories should be cloned down to and built. 
-Defaults to `/home/build-agent/builds`
+The default directory location on the sandbox server where the repositories should be cloned down to and built. 
+Defaults to `/home/build-agent/builds`.
 
 `REMOTE_CODEBASE_METHOD`
 
@@ -96,7 +97,7 @@ Pick between `rsync` (default) and `git` for the codebase initialization method 
 
 The codebase is initialized on the sandbox server by the `sandbox-init` (or `build-init`) command.
 
-`git` - code is checkout on the sandbox server via git. Server must have access to checkout from the repo. 
+`git` - code is checkout on the sandbox server via git. The server must have access to checkout from the repo. 
 Any build settings and necessary code manipulations must happen on the sandbox server using `build-exec` commands.
 
 `rsync` - code is rsync-ed to the sandbox server from the build agent. You can perform necessary code adjustments in the 
@@ -221,6 +222,37 @@ sandbox-launch:
 
 For a more advanced example see [.gitlab-ci.yml](examples/gitlab/.gitlab-ci.yml).
 
+### Github Actions
+
+Here's the most basic configuration for Github Actions. Save it into `.github/workflows/sandbox.yml` in your project repo.
+
+You might need to add your ssh key to EC2 `/home/build-agent/.ssh` and the deploy(public) key to Github Actions for cloning the codebase via git.
+
+```yaml
+name: Docksal sandbox
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: docksal/ci-agent:base
+    env:
+      CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
+      DOCKSAL_HOST_IP: ${{ secrets.DOCKSAL_HOST_IP }}
+      DOCKSAL_HOST_SSH_KEY: ${{ secrets.DOCKSAL_HOST_SSH_KEY }}
+      GITHUB_TOKEN: ${{ github.token }}
+      REMOTE_CODEBASE_METHOD: git
+    steps:
+      - name: Build sandbox
+        run: |
+          source build-env
+          sandbox-init
+```
+
+For a more advanced example see [.sandbox.yml](examples/.github/workflows/sandbox.yml).
 
 ## Build commands
 
@@ -235,7 +267,7 @@ For a complete list of built-in commands see [base/bin](base/bin).
 
 ## Build environment variables
 
-The following variables are derived from the respective Bitbucket Pipelines, Circle CI, and GitLab CI build variables. 
+The following variables are derived from the respective Bitbucket Pipelines, Circle CI, GitLab CI, and Github Actions build variables. 
 
 - `GIT_REPO_OWNER` - git repo machine owner/slug name
 - `GIT_REPO_NAME` - git repo machine name
@@ -249,7 +281,7 @@ The following variables are derived from the respective Bitbucket Pipelines, Cir
 
 `REMOTE_BUILD_DIR`
 
-The directory location on the remote server where current build will happen. Defaults to:
+The directory location on the sandbox server where current build will happen. Defaults to:
 
 ```
 ${REMOTE_BUILD_BASE}/${REPO_NAME_SAFE}-${BRANCH_NAME_SAFE}
