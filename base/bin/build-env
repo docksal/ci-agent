@@ -29,7 +29,7 @@ REPO_NAME_LENGTH_LIMIT=${REPO_NAME_LENGTH_LIMIT:-20}
 # -------------------- Functions -------------------- #
 
 # Print messages only when debugging in ON
-echo-debug ()
+echo_debug ()
 {
 	# Make sure this is wrapped in an "if" statement or it will through "exit 1" on "false" and fail the script
 	if [[ "$DEBUG" != 0 ]]; then echo "$@"; fi
@@ -79,14 +79,14 @@ build_env ()
 	# This allows, at the project level, unsetting build variables set at the org level
 	if empty_vars="$(env | grep '=null$' | cut -d = -f 1)"; then
 		while read -r i; do
-			echo-debug "Dropping the '${i}' variable with a 'null' value..."
+			echo_debug "Dropping the '${i}' variable with a 'null' value..."
 			unset ${i};
 		done <<< "${empty_vars}"
 	fi
 
 	# Support for Bitbucket Pipelines
 	if [[ "$BITBUCKET_REPO_SLUG" != "" ]]; then
-		echo-debug "Detected Bitbucket Pipelines build environment"
+		echo_debug "Detected Bitbucket Pipelines build environment"
 		export BITBUCKET_CI="true"
 		export GIT_REPO_SERVICE="bitbucket"
 		export GIT_REPO_OWNER="$BITBUCKET_REPO_OWNER"
@@ -103,7 +103,7 @@ build_env ()
 
 	# Support for CircleCI 2.0
 	if [[ "$CIRCLECI" != "" ]]; then
-		echo-debug "Detected CircleCI build environment"
+		echo_debug "Detected CircleCI build environment"
 		export GIT_REPO_OWNER="$CIRCLE_PROJECT_USERNAME"
 		export GIT_REPO_NAME="$CIRCLE_PROJECT_REPONAME"
 		export GIT_REPO_URL="$CIRCLE_REPOSITORY_URL"
@@ -129,7 +129,7 @@ build_env ()
 
 	# Support for GitLab 9.0+
 	if [[ "$GITLAB_CI" != "" ]]; then
-		echo-debug "Detected GitLabCI build environment"
+		echo_debug "Detected GitLabCI build environment"
 		export GIT_REPO_SERVICE="gitlab"
 		export GIT_REPO_OWNER="$CI_PROJECT_NAMESPACE"
 		export GIT_REPO_NAME="$CI_PROJECT_NAME"
@@ -144,7 +144,7 @@ build_env ()
 
 	# Support for Jenkins Git SCM
 	if [[ "$JENKINS_URL" != "" ]]; then
-		echo-debug "Detected Jenkins build environment"
+		echo_debug "Detected Jenkins build environment"
 		export JENKINS_CI="true"
 		export GIT_REPO_SERVICE=$(parse_repo_url "$GIT_URL" service)
 		export GIT_REPO_OWNER=$(parse_repo_url "$GIT_URL" owner)
@@ -159,7 +159,7 @@ build_env ()
 
 	# Support for GitHub Actions
 	if [[ "$GITHUB_ACTIONS" != "" ]]; then
-	  echo-debug "Detected Github Actions build environment"
+	  echo_debug "Detected Github Actions build environment"
 	  export HOME=$AGENT_HOME
 	  export GIT_REPO_OWNER="$GITHUB_REPOSITORY_OWNER"
 	  export GIT_REPO_NAME="${GITHUB_REPOSITORY##*/}"
@@ -310,18 +310,18 @@ ssh_tunnel_init ()
 
 # -------------------- Runtime -------------------- #
 
-echo-debug "Configuring build settings..."
+echo_debug "Configuring build settings..."
 build_env
 
-echo-debug "Configuring ssh access..."
+echo_debug "Configuring ssh access..."
 ssh_init
 
 # Configure git
-echo-debug "Configuring git settings..."
+echo_debug "Configuring git settings..."
 git_env
 
 # Sandbox server settings
-echo-debug "Configuring sandbox server settings..."
+echo_debug "Configuring sandbox server settings..."
 # Initialize a tunnel to the Docker Engine on DOCKSAL_HOST
 # Export local tunnel connection settings if it works
 # Using full "if" form instead of the short one here, otherwise build fails, when the condition below is false
