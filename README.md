@@ -247,6 +247,7 @@ jobs:
       REMOTE_CODEBASE_METHOD: git
     steps:
       - name: Build sandbox
+        shell: bash
         run: |
           source build-env
           sandbox-init
