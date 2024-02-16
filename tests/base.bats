@@ -27,12 +27,12 @@ teardown() {
 
 	run make exec COMMAND="docker-compose --version"
 	[[ "$status" == 0 ]]
-	echo "$output" | grep "docker-compose version"
+	echo "$output" | grep "Docker Compose version"
 	unset output
 
-	run make exec COMMAND="mc --help"
+	run make exec COMMAND="mc --version"
 	[[ "$status" == 0 ]]
-	echo "$output" | grep "VERSION"
+	echo "$output" | grep "mc version"
 	unset output
 
 	### Cleanup ###

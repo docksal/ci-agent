@@ -17,6 +17,7 @@ PDO
 pdo_mysql
 Phar
 posix
+random
 readline
 Reflection
 SimpleXML
