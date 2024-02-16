@@ -6,29 +6,29 @@ USER root
 RUN set -xe; \
 	apk add --update --no-cache \
 		mysql-client \
-		php81 \
-		php81-ctype \
-		php81-curl \
-		php81-dom \
-		php81-gd \
-		php81-json \
-		php81-mbstring \
-		php81-openssl \
-		php81-pdo_mysql \
-		php81-phar \
-		php81-posix \
-		php81-simplexml \
-		php81-tokenizer \
-		php81-xml \
-		php81-xmlreader \
-		php81-xmlwriter \
-		php81-zlib; \
+		php82 \
+		php82-ctype \
+		php82-curl \
+		php82-dom \
+		php82-gd \
+		php82-json \
+		php82-mbstring \
+		php82-openssl \
+		php82-pdo_mysql \
+		php82-phar \
+		php82-posix \
+		php82-simplexml \
+		php82-tokenizer \
+		php82-xml \
+		php82-xmlreader \
+		php82-xmlwriter \
+		php82-zlib; \
 	rm -rf /var/cache/apk/*;
 
-ENV COMPOSER_VERSION=2.5.1 \
-	DRUSH_VERSION=8.4.11 \
+ENV COMPOSER_VERSION=2.7.1 \
+	DRUSH_VERSION=8.4.12 \
 	DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.7 \
-	WPCLI_VERSION=2.6.0
+	WPCLI_VERSION=2.10.0
 RUN set -xe; \
 	# Composer
 	curl -fsSL "https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar" -o /usr/local/bin/composer; \
