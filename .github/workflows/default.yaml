@@ -19,7 +19,7 @@ defaults:
 jobs:
   build-test-push:
     name: Build, Test, Push
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     env:
       IMAGE: docksal/ci-agent
@@ -36,14 +36,14 @@ jobs:
           bats -v
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       #-
       #  name: Set up QEMU
-      #  uses: docker/setup-qemu-action@v1
+      #  uses: docker/setup-qemu-action@v3
       # buildx has some glitches with local upstream (FROM) images. Disabled.
       #-
       #  name: Set up Docker Buildx
-      #  uses: docker/setup-buildx-action@v1
+      #  uses: docker/setup-buildx-action@v3
       -
         name: Check Docker
         run: |
@@ -51,13 +51,13 @@ jobs:
           docker info
       -
         name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME }}
@@ -65,16 +65,17 @@ jobs:
       -
         # Calculates docker image tags for the given build context
         # The output is used in build and push step as `tags: ${{ steps.docker_meta.outputs.tags }}`
-        # See https://github.com/crazy-max/ghaction-docker-meta
         name: Docker meta
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: docker/metadata-action@v5
         with:
           # List of Docker images to use as base name for tags
           images: |
             ${{ env.IMAGE }}
             ghcr.io/${{ env.IMAGE }}
-          tag-sha: true # add git short SHA as Docker tag
+          # Add git short SHA as Docker tag
+          tags: |
+            type=sha
       -
         # Build for local use
         name: Build image (base)
@@ -95,7 +96,7 @@ jobs:
       # Cache image layers in the registry
       -
         name: Push image cache (base)
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         env:
           IMAGE_CACHE: ghcr.io/${{ env.IMAGE }}:base-build
         with:
@@ -107,7 +108,7 @@ jobs:
           cache-to: type=inline # Write the cache metadata into the image configuration
       -
         name: Push image cache (php)
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         env:
           IMAGE_CACHE: ghcr.io/${{ env.IMAGE }}:php-build
         with:
@@ -143,7 +144,7 @@ jobs:
         # Don't run if the list of tags is empty
         # Note: using tags from docker_tags (custom)
         if: ${{ steps.docker_tags_base.outputs.tags != '' }}
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           context: base
           file: base/Dockerfile
@@ -160,7 +161,7 @@ jobs:
         # Don't run if the list of tags is empty
         # Note: using tags from docker_tags (custom)
         if: ${{ steps.docker_tags_php.outputs.tags != '' }}
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           context: php
           file: php/Dockerfile
