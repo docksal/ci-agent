@@ -62,4 +62,4 @@ done
 # Print with new lines for output in build logs
 (IFS=$'\n'; echo "${repoImageTagArr[*]}")
 # Using newlines in outputs variables does not seem to work, so we'll use comas
-(IFS=$','; echo "::set-output name=tags::${repoImageTagArr[*]}")
+(IFS=$','; echo "tags=${repoImageTagArr[*]}" | tee -a ${GITHUB_OUTPUT})
